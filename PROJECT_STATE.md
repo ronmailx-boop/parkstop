@@ -59,6 +59,13 @@
 - [ ] העלאה בפועל ל-Play Console (closed testing track, Data Safety
       form, הצהרת background location).
 
+## תקלות שתוקנו (היסטוריה קצרה)
+
+- דפי המשפטי (`docs/legal/*.md`) יצאו מיושרים לשמאל ב-GitHub Pages —
+  לא היה להם Jekyll layout, אז ה-build הגולמי לא הוסיף `dir="rtl"`.
+  תוקן ע"י `docs/_layouts/legal.html` (RTL + עיצוב תואם לאתר), מאומת
+  ע"י build מקומי של Jekyll.
+
 ## החלטות ארכיטקטורה מרכזיות
 
 - **מקור אמת למצב המנוע:** SharedPreferences נטיבי נפרד
