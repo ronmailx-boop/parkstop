@@ -8,8 +8,14 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>ParkStop</h1>
     <span id="status-pill" class="status-pill idle" role="status" aria-live="polite"><span class="dot"></span><span id="status-pill-text">לא פעיל</span></span>
+    <div class="brand">
+      <h1>ParkStop</h1>
+      <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true">
+        <polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="#ffffff" />
+        <text x="50" y="54" text-anchor="middle" dominant-baseline="central" font-weight="800" font-size="50" fill="var(--color-primary)">P</text>
+      </svg>
+    </div>
   </header>
 
   <main class="app-main">
@@ -18,9 +24,15 @@
     </div>
 
     <section class="card" id="main-action-card">
-      <h2>חניה</h2>
+      <div class="medallion-header">
+        <svg width="48" height="48" viewBox="0 0 100 100" aria-hidden="true">
+          <polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="var(--color-primary)" />
+          <text x="50" y="54" text-anchor="middle" dominant-baseline="central" font-weight="800" font-size="50" fill="#ffffff">P</text>
+        </svg>
+        <h2>חניה</h2>
+      </div>
       <div id="idle-view">
-        <p class="hint" style="margin-bottom:14px;">בחר את אפליקציית החניה שבה השתמשת, ואז הפעל מעקב. ברגע שתחזור לרכב תקבל תזכורת לעצור את החניה.</p>
+        <p class="hint" style="margin-bottom:14px;text-align:center;">בחר את אפליקציית החניה שבה השתמשת, ואז הפעל מעקב. ברגע שתחזור לרכב תקבל תזכורת לעצור את החניה.</p>
         <div class="field">
           <label for="parking-app-select">אפליקציית חניה</label>
           <select id="parking-app-select"></select>
