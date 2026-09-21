@@ -34,24 +34,30 @@
 - [x] מעבר נגישות ממוקד (ARIA רק היכן שפונקציונלי: aria-live על סטטוס/
       Toast/Alert, aria-label על switches, aria-hidden על אייקונים
       דקורטיביים).
+- [x] בנייה אמיתית ב-GitHub Actions הצליחה (APK + AAB חתומים), Secrets
+      הוגדרו, נבדק בפועל על מכשיר S25FE פיזי.
+- [x] אייקון מותאם אישית (אוקטגון STOP אדום + P) — `design/icon/`,
+      גרסת adaptive icon (foreground/background) עם תיקון קרופ אגרסיבי
+      של Samsung One UI, וגרסת store (hi-res 512, ללא alpha).
+- [x] GitHub Pages פעיל (`docs/`), עמוד נחיתה מחודש (hero/features/
+      how-it-works), README עם קישור הורדה בולט.
+- [x] מסך "אודות" ב-`settings.html` עם מספר גרסה אמיתי (דרך
+      `@capacitor/app` `getInfo()`).
+- [x] Placeholders במסמכים המשפטיים מולאו בפרטים אמיתיים (מייל, שם
+      מפתח "vplus studio", מחוז שיפוט תל אביב).
+- [x] Feature graphic (1024x500) + טיוטת טקסטים לרישום ב-Play Store
+      (`docs/PLAY_STORE_LISTING.md`), ביקורת מוכנות מלאה ל-Play Store
+      (כולל `<queries>` ל-package visibility, בניית AAB).
+- [x] אייקון האפליקציה מוצג נכון ב-my-site (אגרגטור האפליקציות של
+      המשתמש ב-Vercel) — דרך Edge Function צד-שרת ב-my-site שפותר
+      אייקונים בלי חסימת CORS; אומת ע"י המשתמש שעובד.
 
 ## מה נשאר / דורש תשומת לב [ ]
 
-- [ ] **קריטי:** להריץ בנייה אמיתית ב-GitHub Actions ולוודא שהיא
-      מצליחה (אין כאן Android SDK מקומי לבדיקה מקדימה). אם יש שגיאות
-      קומפילציה של Kotlin — לתקן על בסיס לוג ה-CI.
-- [ ] להגדיר GitHub Secrets לחתימה: `PARKSTOP_KEYSTORE_BASE64`,
-      `PARKSTOP_KEYSTORE_PASSWORD`, `PARKSTOP_KEY_ALIAS`,
-      `PARKSTOP_KEY_PASSWORD` (ראו `docs/RELEASE_SIGNING.md`) — בלי זה
-      ה-workflow ייכשל בכוונה עם הודעת שגיאה ברורה.
-- [ ] להתקין את ה-APK על ה-S25FE ולבדוק בפועל: הרשאות, זיהוי בלוטות',
-      geofence, התראה + צליל, Quick Settings Tile, battery optimization
-      deep link ספציפי ל-One UI.
-- [ ] להפעיל GitHub Pages (Settings → Pages → Source: `main` /`docs`)
-      כדי ש-`docs/index.html` יהיה נגיש בפועל.
-- [ ] להחליף אייקון האפליקציה הגנרי (Capacitor default) באייקון מותאם
-      בערכת הנושא הסגולה.
-- [ ] לעדכן placeholders במסמכים המשפטיים (תאריך, איש קשר, וכו').
+- [ ] המשך בדיקת שטח על ה-S25FE לתרחישי קצה (battery optimization
+      deep link ספציפי ל-One UI, אמינות ארוכת-טווח של BLE/geofence).
+- [ ] העלאה בפועל ל-Play Console (closed testing track, Data Safety
+      form, הצהרת background location).
 
 ## החלטות ארכיטקטורה מרכזיות
 
@@ -70,6 +76,7 @@
 
 ## Current Focus
 
-השלב הבא: לוודא שה-CI מצליח לבנות APK חתום, ואז להתקין בפועל על ה-S25FE
-ולעבור על כל תרחיש (בלוטות', geofence, סוללה, quick tile) ולתקן על בסיס
-מה שנצפה במסך ה-Debug Log.
+האפליקציה במצב מוכן ברובו: build חתום עובד, אייקונים ומסכים תקינים,
+מסמכים משפטיים מלאים, עמוד נחיתה + README מוכנים, ואייקון האפליקציה
+מאומת כתקין גם ב-my-site. הצעד הבא: השלמת ביקורת המוכנות ל-Play Store
+(closed testing track, Data Safety form) והעלאה בפועל ל-Play Console.
