@@ -332,6 +332,9 @@ label {
   border-radius: 999px;
   background: var(--color-surface-alt);
   color: var(--color-text-muted);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .hint {
