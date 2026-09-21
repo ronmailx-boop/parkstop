@@ -21,11 +21,11 @@
 
     <!-- Android 11+ hides other apps' packages by default ("package visibility").
          Without this, getLaunchIntentForPackage() for the user's chosen parking
-         app (Pango, Cellopark, a custom one, ...) silently returns null and
+         app (Pango, Cellopark, a custom one, etc.) silently returns null and
          "open the app" always falls back to the Play Store link instead of
          actually opening the installed app. This declares visibility into any
-         app with a launcher icon, which covers every parking app regardless of
-         which one the user picks -- not the broader QUERY_ALL_PACKAGES permission. -->
+         app with a launcher icon, covering every parking app generically,
+         rather than the broader QUERY_ALL_PACKAGES permission. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
