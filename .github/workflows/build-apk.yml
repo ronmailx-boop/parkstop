@@ -62,6 +62,24 @@ jobs:
           PARKSTOP_VERSION_NAME: ${{ steps.version.outputs.name }}
         run: ./gradlew assembleRelease --no-daemon
 
+      - name: Build release AAB (for future Play Store upload)
+        working-directory: android
+        env:
+          PARKSTOP_KEYSTORE_PATH: ${{ runner.temp }}/parkstop-release.keystore
+          PARKSTOP_KEYSTORE_PASSWORD: ${{ secrets.PARKSTOP_KEYSTORE_PASSWORD }}
+          PARKSTOP_KEY_ALIAS: ${{ secrets.PARKSTOP_KEY_ALIAS }}
+          PARKSTOP_KEY_PASSWORD: ${{ secrets.PARKSTOP_KEY_PASSWORD }}
+          PARKSTOP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          PARKSTOP_VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ParkStop-${{ steps.version.outputs.name }}-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
+
       - name: Rename APK
         run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/ParkStop.apk
 
