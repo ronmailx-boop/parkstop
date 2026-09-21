@@ -10,8 +10,10 @@
 
 - [x] מבנה פרויקט Capacitor (`package.json`, `capacitor.config.json`,
       `www/`), appId `com.vplusstudio.parkstop`.
-- [x] 4 מסכי UI מלאים ב-RTL עברית, ערכת נושא סגולה (#7367f0):
+- [x] 4 מסכי UI מלאים ב-RTL עברית:
       `index.html` (ראשי), `settings.html`, `onboarding.html`, `debug.html`.
+      ערכת הנושא עברה מסגול (#7367f0) לאדום+זהב ("Ember & Gold") כדי
+      להתאים לאייקון — ראו סעיף היסטוריית תקלות למטה.
 - [x] שכבת JS: `native.js` (גשר ל-plugin), `storage.js` (Preferences),
       `common.js` (עזרי UI), + לוגיקה per-screen.
 - [x] פרויקט Android נטיבי נוצר אמיתית דרך `npx cap add android` (לא
@@ -94,6 +96,15 @@ Store. ממצאים ותיקונים:
   לא היה להם Jekyll layout, אז ה-build הגולמי לא הוסיף `dir="rtl"`.
   תוקן ע"י `docs/_layouts/legal.html` (RTL + עיצוב תואם לאתר), מאומת
   ע"י build מקומי של Jekyll.
+- המשתמש שם לב שהאייקון אדום אבל תוך-האפליקציה סגול. הוצגו 5 כיווני
+  צבע כ-Design Artifact, המשתמש בחר ב-"Ember & Gold" (אדום + זהב חם).
+  יושם ב-`www/css/style.css` (משתני `:root` + כל ה-`rgba()` הקשיחים
+  שהתאימו לסגול/קורל הישן ב-status pills ו-banners; `--color-danger`
+  הוזז לגוון בהיר/חם יותר מה-primary כדי שההתראה הדחופה עדיין תבלוט).
+  גם נוסף `android/app/src/main/res/values/colors.xml` — התגלה שהקובץ
+  לא היה קיים בכלל למרות ש-`styles.xml` מפנה אליו (`@color/colorPrimary`
+  וכו'), כך שגם צבע ה-status bar הנטיבי יתאים. אומת ויזואלית עם
+  Playwright headless על 4 המסכים לפני ה-commit.
 
 ## החלטות ארכיטקטורה מרכזיות
 
