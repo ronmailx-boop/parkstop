@@ -1,0 +1,8 @@
+{
+  "appId": "com.vplusstudio.parkstop",
+  "appName": "ParkStop",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
