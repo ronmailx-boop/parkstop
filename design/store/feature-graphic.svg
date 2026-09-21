@@ -24,7 +24,7 @@
   <g transform="translate(700,80)">
     <polygon points="113,32 227,32 308,113 308,227 227,308 113,308 32,227 32,113"
              fill="url(#iconGrad)" stroke="#ffffff" stroke-width="10" />
-    <text x="170" y="181" text-anchor="middle" dominant-baseline="central"
+    <text x="165.4" y="238.6" text-anchor="middle" dominant-baseline="central"
           font-family="DejaVu Sans" font-weight="bold" font-size="188" fill="#ffffff">P</text>
   </g>
 
