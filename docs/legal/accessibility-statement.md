@@ -1,4 +1,5 @@
 ---
+layout: legal
 title: הצהרת נגישות – ParkStop
 ---
 

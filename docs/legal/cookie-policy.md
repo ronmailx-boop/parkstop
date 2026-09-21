@@ -1,4 +1,5 @@
 ---
+layout: legal
 title: מדיניות עוגיות (Cookies) – ParkStop
 ---
 
