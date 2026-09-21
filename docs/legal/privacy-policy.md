@@ -1,4 +1,5 @@
 ---
+layout: legal
 title: מדיניות פרטיות – ParkStop
 ---
 
