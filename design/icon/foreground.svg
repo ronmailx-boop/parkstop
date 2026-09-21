@@ -5,9 +5,13 @@
       <stop offset="100%" stop-color="#a62727" />
     </linearGradient>
   </defs>
-  <polygon points="41,22 67,22 86,41 86,67 67,86 41,86 22,67 22,41"
-           fill="url(#g)" stroke="#ffffff" stroke-width="2.2" />
-  <text x="53" y="70.1" text-anchor="middle" dominant-baseline="central"
+  <!-- Sized smaller than the 66dp "safe zone" guideline suggests: Samsung's
+       One UI launcher crops/zooms adaptive icons more aggressively than
+       stock Android, so extra margin here avoids the mark looking
+       cropped-tight on real devices. -->
+  <polygon points="43.2,28.0 64.8,28.0 80.0,43.2 80.0,64.8 64.8,80.0 43.2,80.0 28.0,64.8 28.0,43.2"
+           fill="url(#g)" stroke="#ffffff" stroke-width="1.8" />
+  <text x="53.1" y="67.25" text-anchor="middle" dominant-baseline="central"
         font-family="DejaVu Sans" font-weight="bold"
-        font-size="44" fill="#ffffff">P</text>
+        font-size="36" fill="#ffffff">P</text>
 </svg>
