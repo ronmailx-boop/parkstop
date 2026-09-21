@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea5455" />
+      <stop offset="100%" stop-color="#a62727" />
+    </linearGradient>
+  </defs>
+  <polygon points="41,22 67,22 86,41 86,67 67,86 41,86 22,67 22,41"
+           fill="url(#g)" stroke="#ffffff" stroke-width="2.2" />
+  <text x="54" y="56" text-anchor="middle" dominant-baseline="central"
+        font-family="DejaVu Sans" font-weight="bold"
+        font-size="44" fill="#ffffff">P</text>
+</svg>
