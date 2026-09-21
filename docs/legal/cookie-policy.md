@@ -4,7 +4,7 @@ title: מדיניות עוגיות (Cookies) – ParkStop
 
 # מדיניות עוגיות (Cookies) – ParkStop
 
-**עודכן לאחרונה:** [PLACEHOLDER: תאריך עדכון]
+**עודכן לאחרונה:** 21.09.2026
 
 ## אפליקציית ParkStop
 
@@ -14,10 +14,12 @@ title: מדיניות עוגיות (Cookies) – ParkStop
 
 ## עמוד ההורדה (GitHub Pages)
 
-עמוד ההורדה של האפליקציה, המתארח בכתובת [PLACEHOLDER: כתובת ה-GitHub
-Pages], מתארח על גבי תשתית GitHub Pages. ל-GitHub עצמה עשוי להיות שימוש
-מוגבל בעוגיות טכניות לצורך תפעול השירות שלה — למידע נוסף ראו את [PLACEHOLDER:
-מדיניות הפרטיות והעוגיות של GitHub]. אנו, כמפעילי עמוד ה-GitHub Pages,
+עמוד ההורדה של האפליקציה, המתארח בכתובת
+[ronmailx-boop.github.io/parkstop](https://ronmailx-boop.github.io/parkstop/),
+מתארח על גבי תשתית GitHub Pages. ל-GitHub עצמה עשוי להיות שימוש מוגבל
+בעוגיות טכניות לצורך תפעול השירות שלה — למידע נוסף ראו את
+[מדיניות הפרטיות של GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
+אנו, כמפעילי עמוד ה-GitHub Pages,
 אינם מטמיעים כל עוגיה, כלי מעקב, או כלי אנליטיקס משלנו בעמוד זה.
 
 ## שינויים במדיניות
