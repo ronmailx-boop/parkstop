@@ -3,8 +3,8 @@
 ## סטטוס כללי
 
 בנייה ראשונית מלאה של האפליקציה בוצעה בשיחה אחת (implementation מקיף).
-עדיין **לא נבדק על מכשיר פיזי** — הסביבה הזו ללא Android SDK/מכשיר, כך
-שהבנייה הראשונה ב-GitHub Actions היא גם בדיקת הקומפילציה הראשונה.
+מאז נבדקה בפועל על מכשיר S25FE פיזי, ועברה ביקורת מוכנות ל-Play Store.
+הסביבה עצמה עדיין ללא Android SDK/מכשיר — הבנייה מתבצעת ב-GitHub Actions.
 
 ## מה הושלם [x]
 
@@ -56,8 +56,37 @@
 
 - [ ] המשך בדיקת שטח על ה-S25FE לתרחישי קצה (battery optimization
       deep link ספציפי ל-One UI, אמינות ארוכת-טווח של BLE/geofence).
-- [ ] העלאה בפועל ל-Play Console (closed testing track, Data Safety
-      form, הצהרת background location).
+- [ ] צילומי מסך אמיתיים מהמכשיר (מינימום 2) — נדרשים ל-Store Listing,
+      עדיין לא קיימים (`docs/PLAY_STORE_LISTING.md`).
+- [ ] העלאה בפועל ל-Play Console: closed testing track, Data Safety
+      form, הצהרת Background Location (כולל סרטון הדגמה — נדרש ע"י
+      Google לכל אפליקציה עם הרשאת מיקום ברקע), והצהרת שימוש-ליבה
+      עבור `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (הרשאה מוגבלת שדורשת
+      נימוק בטופס ה-Permissions declaration).
+- [ ] לוודא ש-targetSdk (כרגע 34) עדיין עומד בדרישת ה-API המינימלית
+      העדכנית של Play Console בזמן ההעלאה בפועל — Google מעדכנת את הרף
+      הזה מדי שנה; אם ההעלאה תיחסם, להעלות ל-35 ב-`android/variables.gradle`.
+
+## ביקורת מוכנות ל-Play Store (בוצעה)
+
+עברתי על המניפסט, ה-CI, האייקונים והמסמכים המשפטיים מול דרישות Play
+Store. ממצאים ותיקונים:
+
+- **תוקן:** מדיניות הפרטיות לא הזכירה את הרשאת `INTERNET` שמוצהרת
+  במניפסט (נדרשת טכנית ע"י ה-WebView של Capacitor, ללא שום קריאת רשת
+  בפועל בקוד הנטיבי — אומת בחיפוש בקוד) — נוסף הבהרה בטבלת ההרשאות.
+- **תקין:** hi-res icon (512x512, RGB ללא alpha) ו-feature graphic
+  (1024x500, RGB) — שניהם עומדים בדרישות הפורמט.
+- **תקין:** כותרת ותיאור קצר ב-`PLAY_STORE_LISTING.md` בתוך מגבלות
+  התווים (22/30 ו-71/80 בהתאמה).
+- **תקין:** `<queries>` ל-package visibility, `targetSdk`/`compileSdk`
+  34, versionCode אוטומטי (run_number) + versionName תקין (1.0.x),
+  build חתום + AAB עולים כ-artifacts מה-CI.
+- **להשאיר תחת מעקב (לא באג ודאי):** ה-foreground service מוצהר עם
+  `foregroundServiceType="location"` בלבד, אך גם מאזין לאירועי בלוטות'
+  ברקע. ברוב המקרים זה תקין (BroadcastReceiver לא דורש הצהרת FGS type
+  נפרדת), אבל Play Console מריץ Pre-launch report אוטומטי שיתריע אם
+  Google חושבת אחרת — כדאי לשים לב לדוח הזה בהעלאה הראשונה.
 
 ## תקלות שתוקנו (היסטוריה קצרה)
 
@@ -83,7 +112,8 @@
 
 ## Current Focus
 
-האפליקציה במצב מוכן ברובו: build חתום עובד, אייקונים ומסכים תקינים,
-מסמכים משפטיים מלאים, עמוד נחיתה + README מוכנים, ואייקון האפליקציה
-מאומת כתקין גם ב-my-site. הצעד הבא: השלמת ביקורת המוכנות ל-Play Store
-(closed testing track, Data Safety form) והעלאה בפועל ל-Play Console.
+ביקורת המוכנות ל-Play Store הושלמה (קוד/מניפסט/אייקונים/מסמכים) — ראו
+סעיף למעלה. מה שנשאר הוא פעולות שרק המשתמש יכול לבצע: לצלם מסכי אמת
+מהמכשיר, ולהעלות בפועל ל-Play Console (closed testing, Data Safety
+form, הצהרת background location + סרטון, נימוק ל-battery optimization
+permission).
