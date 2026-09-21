@@ -6,6 +6,9 @@
   const nativePlugin = global.Capacitor && global.Capacitor.Plugins
     ? global.Capacitor.Plugins.ParkStopEngine
     : null;
+  const appPlugin = global.Capacitor && global.Capacitor.Plugins
+    ? global.Capacitor.Plugins.App
+    : null;
 
   const isNative = !!nativePlugin;
 
@@ -77,6 +80,12 @@
     addListener(eventName, callback) {
       if (!nativePlugin) return { remove: () => {} };
       return nativePlugin.addListener(eventName, callback);
+    },
+
+    getAppInfo() {
+      return appPlugin
+        ? appPlugin.getInfo()
+        : Promise.resolve({ name: 'ParkStop', id: 'com.vplusstudio.parkstop', version: '—', build: '—' });
     },
   };
 

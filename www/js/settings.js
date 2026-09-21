@@ -135,6 +135,10 @@
     renderParkingApps();
     await loadDevices(true);
     bindEvents();
+
+    const aboutVersionEl = document.getElementById('about-version');
+    const info = await ParkStopNative.getAppInfo();
+    aboutVersionEl.textContent = `גרסה ${info.version} (${info.build})`;
   }
 
   init();
