@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ParkStop</string>
+    <string name="title_activity_main">ParkStop</string>
+    <string name="package_name">com.vplusstudio.parkstop</string>
+    <string name="custom_url_scheme">com.vplusstudio.parkstop</string>
+    <string name="quick_tile_label">התחל חניה</string>
+</resources>

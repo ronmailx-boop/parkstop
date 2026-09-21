@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>ParkStop – הגדרות</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>הגדרות</h1>
+    <a href="index.html" class="back-link">חזרה ›</a>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>בלוטות׳ הרכב</h2>
+      <div class="field">
+        <label for="bt-device-select">מכשיר בלוטות׳ מזווג</label>
+        <select id="bt-device-select"></select>
+        <p class="hint">בחר את מכשיר הבלוטות׳ של הרכב מתוך המכשירים המזווגים למכשיר שלך. חיבור מחדש למכשיר הזה הוא הטריגר העיקרי להתראה.</p>
+      </div>
+      <button id="refresh-devices-btn" class="btn btn-ghost">רענן רשימת מכשירים</button>
+    </section>
+
+    <section class="card">
+      <h2>איתותים</h2>
+      <div class="row">
+        <div class="row-text">
+          <div class="row-title">בלוטות׳</div>
+          <div class="row-sub">זיהוי חיבור מחדש לבלוטות׳ הרכב</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="use-bluetooth-toggle" aria-label="הפעלת איתות בלוטות׳" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="row">
+        <div class="row-text">
+          <div class="row-title">מיקום (Geofence)</div>
+          <div class="row-sub">זיהוי כניסה לרדיוס סביב מיקום החניה</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="use-geofence-toggle" aria-label="הפעלת איתות מיקום (Geofence)" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>הגדרות Geofence</h2>
+      <div class="field">
+        <label for="geofence-radius">רדיוס התראה (מטרים)</label>
+        <input type="number" id="geofence-radius" min="10" max="500" step="10" />
+      </div>
+      <div class="field">
+        <label for="geofence-window">חלון זמן לאיתות גיבוי בלבד (דקות)</label>
+        <input type="number" id="geofence-window" min="1" max="60" step="1" />
+        <p class="hint">אם רק ה-Geofence זיהה כניסה לאזור (בלי חיבור בלוטות׳) בתוך חלון הזמן הזה מתחילת החניה, תישלח התראה ברמת ודאות נמוכה יותר.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>אפליקציות חניה מועדפות</h2>
+      <div id="parking-apps-list"></div>
+      <div class="field" style="margin-top:14px;">
+        <label for="new-app-name">הוספת אפליקציה</label>
+        <input type="text" id="new-app-name" placeholder="שם האפליקציה" style="margin-bottom:8px;" />
+        <input type="text" id="new-app-package" placeholder="Package name (אופציונלי, לדיפ לינק)" />
+      </div>
+      <button id="add-app-btn" class="btn btn-ghost">הוספת אפליקציה</button>
+    </section>
+
+    <section class="card">
+      <h2>הרשאות והתקנה</h2>
+      <a href="onboarding.html" class="btn btn-secondary" style="text-decoration:none;">מסך הרשאות ו-Battery Optimization</a>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/native.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

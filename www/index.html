@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>ParkStop</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>ParkStop</h1>
+    <span id="status-pill" class="status-pill idle" role="status" aria-live="polite"><span class="dot"></span><span id="status-pill-text">לא פעיל</span></span>
+  </header>
+
+  <main class="app-main">
+    <div id="onboarding-banner" class="banner warning" role="status" style="display:none;">
+      עדיין לא השלמת את הגדרת ההרשאות. <a href="onboarding.html" style="color:inherit;font-weight:700;">להשלמת ההגדרה &laquo;</a>
+    </div>
+
+    <section class="card" id="main-action-card">
+      <h2>חניה</h2>
+      <div id="idle-view">
+        <p class="hint" style="margin-bottom:14px;">בחר את אפליקציית החניה שבה השתמשת, ואז הפעל מעקב. ברגע שתחזור לרכב תקבל תזכורת לעצור את החניה.</p>
+        <div class="field">
+          <label for="parking-app-select">אפליקציית חניה</label>
+          <select id="parking-app-select"></select>
+        </div>
+        <div class="field" id="custom-app-field" style="display:none;">
+          <label for="custom-app-name">שם האפליקציה</label>
+          <input type="text" id="custom-app-name" placeholder="לדוגמה: פנגו" />
+        </div>
+        <button id="start-btn" class="btn btn-lg">התחל חניה עכשיו</button>
+      </div>
+
+      <div id="active-view" style="display:none;">
+        <p class="row-title" id="active-app-name">—</p>
+        <p class="hint" id="active-since">—</p>
+        <div class="hint" id="signal-summary" style="margin:10px 0;"></div>
+        <button id="stop-btn" class="btn btn-lg btn-danger">עצרתי את החניה</button>
+      </div>
+    </section>
+
+    <section class="card" id="alert-card" role="alert" aria-live="assertive" style="display:none;">
+      <h2>הגעת לרכב</h2>
+      <p class="hint">נראה שחזרת לרכב. שכחת לעצור את החניה?</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+        <button id="open-app-btn" class="btn">פתח את אפליקציית החניה</button>
+        <button id="stopped-btn" class="btn btn-danger">עצרתי את החניה</button>
+        <button id="snooze-btn" class="btn btn-secondary">עדיין לא, תזכיר לי עוד 5 דקות</button>
+      </div>
+    </section>
+
+    <nav class="nav-grid">
+      <a href="settings.html" class="nav-tile"><span class="icon" aria-hidden="true">⚙️</span>הגדרות</a>
+      <a href="debug.html" class="nav-tile"><span class="icon" aria-hidden="true">🛰️</span>יומן Debug</a>
+    </nav>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/native.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

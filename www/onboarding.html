@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>ParkStop – הרשאות</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>הרשאות נדרשות</h1>
+    <a href="index.html" class="back-link">חזרה ›</a>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>למה ParkStop צריכה הרשאות אלו?</h2>
+      <p class="hint" style="font-size:14px;line-height:1.7;">
+        ParkStop עוקבת אחרי חזרתך לרכב כדי להזכיר לך לעצור את החניה הפעילה.
+        כל המידע נשאר <strong>על המכשיר שלך בלבד</strong> — האפליקציה לא שולחת
+        מיקום או נתונים לשום שרת. כדי שהמעקב ימשיך לעבוד גם כשהאפליקציה
+        סגורה, אנחנו זקוקים להרשאות הבאות:
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>מיקום — כולל ברקע</h3>
+          <p>נדרש כדי לזהות שחזרת לאזור החניה (Geofence), גם כשהאפליקציה סגורה. המיקום נבדק מקומית בלבד ולא נשלח החוצה.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>בלוטות׳</h3>
+          <p>נדרש כדי לזהות חיבור מחדש למכשיר הבלוטות׳ של הרכב שלך — זהו הסימן האמין ביותר לכך שחזרת לרכב.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>התראות</h3>
+          <p>נדרש כדי להציג לך תזכורת עם צליל כשמזוהה שחזרת לרכב.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>שלב 1: אישור הרשאות</h2>
+      <div id="permission-status" class="hint" style="margin-bottom:12px;"></div>
+      <button id="request-permissions-btn" class="btn">אשר הרשאות</button>
+    </section>
+
+    <section class="card">
+      <h2>שלב 2: ביטול חיסכון בסוללה (Samsung)</h2>
+      <p class="hint" style="margin-bottom:12px;">
+        במכשירי Samsung (One UI) המערכת עלולה "להרדים" את השירות ברקע ולמנוע
+        זיהוי חזרה לרכב. יש לבטל את חיסכון הסוללה עבור ParkStop:
+      </p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>פתח הגדרות סוללה לאפליקציה</h3>
+          <p>לחץ על הכפתור למטה כדי לעבור ישירות למסך ההגדרות הרלוונטי.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>בחר "ללא הגבלות" / "Unrestricted"</h3>
+          <p>ודא שהאפליקציה לא מוגדרת כ"נרדמת" (Sleeping apps) וש"אופטימיזציית סוללה" כבויה עבורה.</p>
+        </div>
+      </div>
+      <button id="battery-settings-btn" class="btn btn-secondary" style="margin-top:12px;">פתח הגדרות סוללה</button>
+      <p class="hint" id="battery-status" style="margin-top:10px;"></p>
+    </section>
+
+    <section class="card">
+      <button id="finish-btn" class="btn btn-lg">סיימתי, המשך לאפליקציה</button>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/native.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/onboarding.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ParkStop – הורדת האפליקציה</title>
+  <style>
+    :root {
+      --color-primary: #7367f0;
+      --color-primary-dark: #7c4ddb;
+      --color-bg: #0f0e17;
+      --color-surface: #1c1a29;
+      --color-text: #f4f3f8;
+      --color-text-muted: #a8a4bd;
+      --color-border: #35324a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: "Segoe UI", "Assistant", "Rubik", -apple-system, sans-serif;
+      direction: rtl;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+    }
+    .hero {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+      width: 88px;
+      height: 88px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0 0 6px; font-size: 26px; }
+    p.tagline { color: var(--color-text-muted); margin: 0 0 32px; font-size: 15px; max-width: 360px; }
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 18px;
+      padding: 22px;
+      max-width: 380px;
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 17px;
+      font-weight: 700;
+      text-decoration: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); }
+    .btn:last-child { margin-bottom: 0; }
+    .note { color: var(--color-text-muted); font-size: 13px; line-height: 1.7; margin-top: 10px; }
+    .steps { text-align: right; font-size: 13.5px; color: var(--color-text-muted); line-height: 1.9; margin: 0; padding-inline-start: 20px; }
+    footer { margin-top: 36px; font-size: 12px; color: var(--color-text-muted); }
+    footer a { color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <div class="hero">🅿️</div>
+  <h1>ParkStop</h1>
+  <p class="tagline">תזכורת חכמה לעצור את החניה ברגע שאתם חוזרים לרכב — הכל נשאר על המכשיר שלכם בלבד.</p>
+
+  <div class="card">
+    <a id="open-app-btn" class="btn btn-primary" href="com.vplusstudio.parkstop://open">פתח את האפליקציה</a>
+    <a id="download-btn" class="btn btn-secondary" href="https://github.com/ronmailx-boop/parkstop/releases/latest/download/ParkStop.apk">הורדת ה-APK האחרון</a>
+    <p class="note" id="fallback-note" style="display:none;">האפליקציה לא נמצאה מותקנת במכשיר — הורידו אותה למטה.</p>
+  </div>
+
+  <div class="card">
+    <strong style="display:block;margin-bottom:10px;">התקנה ראשונה</strong>
+    <ol class="steps">
+      <li>לחצו על "הורדת ה-APK האחרון".</li>
+      <li>אם מוצג אזהרה על "מקור לא ידוע" — אשרו התקנה מהדפדפן/קובץ.</li>
+      <li>פתחו את ParkStop והשלימו את מסך ההרשאות.</li>
+      <li>בפעם הבאה — פשוט חזרו לעמוד הזה ולחצו "פתח את האפליקציה".</li>
+    </ol>
+  </div>
+
+  <footer>
+    <a href="legal/privacy-policy.html">מדיניות פרטיות</a> ·
+    <a href="legal/terms-of-service.html">תנאי שימוש</a> ·
+    <a href="legal/accessibility-statement.html">הצהרת נגישות</a>
+  </footer>
+
+  <script>
+    (function () {
+      var openBtn = document.getElementById('open-app-btn');
+      var note = document.getElementById('fallback-note');
+      openBtn.addEventListener('click', function () {
+        var hidden = false;
+        var onVisibilityChange = function () {
+          if (document.hidden) hidden = true;
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        setTimeout(function () {
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+          if (!hidden) note.style.display = 'block';
+        }, 1500);
+      });
+    })();
+  </script>
+</body>
+</html>

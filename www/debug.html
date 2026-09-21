@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>ParkStop – Debug</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>יומן Debug</h1>
+    <a href="index.html" class="back-link">חזרה ›</a>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>מצב נוכחי</h2>
+      <div id="live-status">
+        <div class="list-item"><span class="row-title">מצב</span><span id="ds-state" class="chip">—</span></div>
+        <div class="list-item"><span class="row-title">בלוטות׳ רכב</span><span id="ds-bluetooth" class="chip">—</span></div>
+        <div class="list-item"><span class="row-title">מיקום אחרון</span><span id="ds-location" class="chip">—</span></div>
+        <div class="list-item"><span class="row-title">מרחק מהחניה</span><span id="ds-distance" class="chip">—</span></div>
+        <div class="list-item"><span class="row-title">עדכון אחרון</span><span id="ds-updated" class="chip">—</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h2 style="margin:0;">אירועים אחרונים</h2>
+        <button id="clear-logs-btn" class="btn btn-ghost" style="width:auto;padding:6px 14px;font-size:13px;">נקה</button>
+      </div>
+      <div id="log-list" class="log-list">
+        <p class="empty-state">אין עדיין אירועים</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/native.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/debug.js"></script>
+</body>
+</html>
