@@ -1,15 +1,16 @@
 :root {
-  --color-primary: #7367f0;
-  --color-primary-dark: #7c4ddb;
-  --color-bg: #0f0e17;
-  --color-surface: #1c1a29;
-  --color-surface-alt: #262438;
-  --color-text: #f4f3f8;
-  --color-text-muted: #a8a4bd;
-  --color-border: #35324a;
+  --color-primary: #cf4436;
+  --color-primary-dark: #97281d;
+  --color-gold: #e3a542;
+  --color-bg: #16130f;
+  --color-surface: #221c15;
+  --color-surface-alt: #2e2417;
+  --color-text: #fbf5ec;
+  --color-text-muted: #c7b49b;
+  --color-border: #3d2f1f;
   --color-success: #28c76f;
   --color-warning: #ff9f43;
-  --color-danger: #ea5455;
+  --color-danger: #ff6151;
   --radius: 16px;
   --gap: 16px;
   font-size: 16px;
@@ -95,10 +96,10 @@ body {
   font-weight: 600;
 }
 
-.status-pill.idle { background: rgba(168,164,189,0.15); color: var(--color-text-muted); }
-.status-pill.parking_active { background: rgba(115,103,240,0.2); color: var(--color-primary); }
+.status-pill.idle { background: rgba(199,180,155,0.15); color: var(--color-text-muted); }
+.status-pill.parking_active { background: rgba(207,68,54,0.2); color: var(--color-primary); }
 .status-pill.monitoring { background: rgba(255,159,67,0.18); color: var(--color-warning); }
-.status-pill.alert { background: rgba(234,84,85,0.2); color: var(--color-danger); }
+.status-pill.alert { background: rgba(255,97,81,0.2); color: var(--color-danger); }
 
 .status-pill .dot {
   width: 8px;
@@ -142,6 +143,7 @@ body {
   padding: 22px;
   font-size: 19px;
   border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgba(227,165,66,0.45);
 }
 
 .btn.btn-danger { background: var(--color-danger); }
@@ -249,8 +251,8 @@ label {
   padding: 14px 16px;
   font-size: 14px;
   line-height: 1.6;
-  background: rgba(115,103,240,0.12);
-  border: 1px solid rgba(115,103,240,0.35);
+  background: rgba(207,68,54,0.12);
+  border: 1px solid rgba(207,68,54,0.35);
   color: var(--color-text);
 }
 
@@ -260,8 +262,8 @@ label {
 }
 
 .banner.danger {
-  background: rgba(234,84,85,0.12);
-  border-color: rgba(234,84,85,0.4);
+  background: rgba(255,97,81,0.12);
+  border-color: rgba(255,97,81,0.4);
 }
 
 .log-list {
