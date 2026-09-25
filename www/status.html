@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>ParkStop – סטטוס</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>סטטוס</h1>
+    <a href="index.html" class="back-link">חזרה ›</a>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>בדיקת מוכנות</h2>
+      <div id="checklist"></div>
+    </section>
+
+    <section class="card" id="samsung-card" style="display:none;">
+      <h2>התאמה למכשיר Samsung</h2>
+      <p class="hint" style="margin-bottom:12px;">
+        מערכת ניהול הסוללה של Samsung (One UI) עלולה "להרדים" שירותי רקע ולמנוע
+        זיהוי חזרה לרכב. יש להוסיף את ParkStop לרשימת "אפליקציות שלעולם לא נכנסות
+        למצב שינה" (הגדרות ‹ סוללה ‹ הגבלות שימוש ברקע).
+      </p>
+      <button id="samsung-settings-btn" class="btn btn-secondary" style="margin-bottom:12px;">פתח הגדרות סוללה</button>
+      <label class="row" style="border-bottom:none;padding:0;">
+        <span class="row-text row-title">ביצעתי את השלב הזה</span>
+        <input type="checkbox" id="samsung-done-checkbox" />
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>כלי בדיקה</h2>
+      <p class="hint" style="margin-bottom:12px;">כל הפעולות האלה נרשמות ביומן האירועים.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="test-alert-now-btn" class="btn">שלח התראת בדיקה עכשיו</button>
+        <button id="test-alert-delayed-btn" class="btn btn-secondary">התראת בדיקה מושהית (30 שניות)</button>
+        <button id="simulate-bt-btn" class="btn btn-secondary">הדמיית חיבור לבלוטות׳</button>
+        <button id="manual-start-btn" class="btn btn-secondary">התחל חניית בדיקה ידנית</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/native.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/status.js"></script>
+</body>
+</html>

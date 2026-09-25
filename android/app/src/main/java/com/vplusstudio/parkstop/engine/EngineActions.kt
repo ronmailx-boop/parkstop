@@ -11,7 +11,7 @@ object EngineActions {
         EngineStore.reset(context)
         NotificationHelper.cancel(context, NotificationHelper.ALERT_NOTIFICATION_ID)
         context.stopService(Intent(context, ParkStopForegroundService::class.java))
-        logAndBroadcast(context, "success", "החניה נעצרה")
+        logAndBroadcast(context, "success", "החניה נעצרה", EngineStore.EventType.PARKING_STOPPED)
         broadcastStatus(context)
     }
 
@@ -41,13 +41,27 @@ object EngineActions {
         )
         EngineStore.startSession(context, params)
         ContextCompat.startForegroundService(context, Intent(context, ParkStopForegroundService::class.java))
-        logAndBroadcast(context, "success", "חניה הופעלה (${params.parkingAppName})")
+        logAndBroadcast(context, "success", "חניה הופעלה (${params.parkingAppName})", EngineStore.EventType.PARKING_STARTED)
         broadcastStatus(context)
         return true
     }
 
-    private fun logAndBroadcast(context: Context, level: String, message: String) {
-        val entry = EngineStore.appendLog(context, level, message)
+    /** Restarts the service process WITHOUT touching the saved session (anchor, started-at,
+     * app info) -- used by the Status screen's "restart" fix when the state is still
+     * MONITORING/ALERT but Android killed the actual Service object. */
+    fun restartServiceIfDead(context: Context): Boolean {
+        val state = EngineStore.getState(context)
+        if (state != EngineStore.State.MONITORING && state != EngineStore.State.ALERT) return false
+        if (ParkStopForegroundService.isRunning) return true
+
+        ContextCompat.startForegroundService(context, Intent(context, ParkStopForegroundService::class.java))
+        logAndBroadcast(context, "info", "השירות הופעל מחדש ידנית", EngineStore.EventType.SERVICE_STARTED)
+        broadcastStatus(context)
+        return true
+    }
+
+    private fun logAndBroadcast(context: Context, level: String, message: String, type: String = EngineStore.EventType.INFO) {
+        val entry = EngineStore.appendLog(context, level, message, type)
         EngineEvents.postLogAdded(entry)
     }
 

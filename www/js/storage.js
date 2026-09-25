@@ -22,6 +22,7 @@
     ],
     selectedParkingAppId: 'pango',
     customParkingAppName: '',
+    samsungBatteryChecklistDone: false,
   };
 
   async function get() {

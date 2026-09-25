@@ -34,6 +34,13 @@ class ParkStopForegroundService : Service() {
         private const val LOCATION_INTERVAL_MS = 30_000L
         private const val WATCHDOG_INTERVAL_MS = 60_000L
         private const val GEOFENCE_ALERT_COOLDOWN_MS = 5 * 60_000L
+        private const val HEARTBEAT_INTERVAL_MS = 30 * 60_000L
+
+        /** Whether the service object is currently alive. Read by the Status screen -- a
+         * state of MONITORING with this false means Android killed the service silently. */
+        @Volatile
+        var isRunning: Boolean = false
+            private set
     }
 
     private var fusedLocationClient: FusedLocationProviderClient? = null
@@ -44,9 +51,17 @@ class ParkStopForegroundService : Service() {
 
     private val watchdogRunnable = object : Runnable {
         override fun run() {
+            maybeLogHeartbeat()
             evaluateConditions()
             watchdogHandler.postDelayed(this, WATCHDOG_INTERVAL_MS)
         }
+    }
+
+    private fun maybeLogHeartbeat() {
+        val now = System.currentTimeMillis()
+        if (now - EngineStore.getLastHeartbeatAt(applicationContext) < HEARTBEAT_INTERVAL_MS) return
+        EngineStore.setLastHeartbeatNow(applicationContext)
+        logAndBroadcast("info", "השירות עדיין רץ", EngineStore.EventType.HEARTBEAT)
     }
 
     private val bluetoothReceiver = object : BroadcastReceiver() {
@@ -59,12 +74,12 @@ class ParkStopForegroundService : Service() {
             when (intent.action) {
                 BluetoothDevice.ACTION_ACL_CONNECTED -> {
                     EngineStore.setBluetoothConnected(applicationContext, true)
-                    logAndBroadcast("success", "בלוטות׳ הרכב התחבר")
+                    logAndBroadcast("success", "בלוטות׳ הרכב התחבר", EngineStore.EventType.BT_CONNECTED)
                     evaluateConditions()
                 }
                 BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
                     EngineStore.setBluetoothConnected(applicationContext, false)
-                    logAndBroadcast("info", "בלוטות׳ הרכב התנתק")
+                    logAndBroadcast("info", "בלוטות׳ הרכב התנתק", EngineStore.EventType.BT_DISCONNECTED)
                     postStatus()
                 }
             }
@@ -75,6 +90,7 @@ class ParkStopForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         NotificationHelper.ensureChannels(applicationContext)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
@@ -86,8 +102,15 @@ class ParkStopForegroundService : Service() {
         registerBluetoothReceiver()
         captureAnchorIfNeeded()
         startLocationUpdatesIfNeeded()
+        watchdogHandler.removeCallbacks(watchdogRunnable)
         watchdogHandler.postDelayed(watchdogRunnable, WATCHDOG_INTERVAL_MS)
-        logAndBroadcast("info", "מעקב אחרי חזרה לרכב הופעל")
+
+        if (intent?.action == Actions.ACTION_SIMULATE_BT_CONNECT) {
+            logAndBroadcast("success", "בלוטות׳ הרכב התחבר (הדמיית בדיקה)", EngineStore.EventType.BT_CONNECTED)
+            evaluateConditions()
+        } else {
+            logAndBroadcast("info", "מעקב אחרי חזרה לרכב הופעל", EngineStore.EventType.SERVICE_STARTED)
+        }
 
         return START_STICKY
     }
@@ -130,11 +153,25 @@ class ParkStopForegroundService : Service() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        isRunning = false
         watchdogHandler.removeCallbacks(watchdogRunnable)
         unregisterBluetoothReceiver()
         stopLocationUpdates()
         anchorCancellationSource?.cancel()
+        if (EngineStore.getState(applicationContext) != EngineStore.State.IDLE) {
+            logAndBroadcast("warn", "השירות נעצר", EngineStore.EventType.SERVICE_KILLED)
+        }
+        super.onDestroy()
+    }
+
+    /** Called when the user swipes the app away from Recents -- the scenario most likely
+     * to actually kill a foreground service, and the one the field-testing protocol asks
+     * to be able to see in the log. START_STICKY still restarts the service afterwards. */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        if (EngineStore.getState(applicationContext) != EngineStore.State.IDLE) {
+            logAndBroadcast("warn", "האפליקציה הוסרה מהמשימות האחרונות", EngineStore.EventType.SERVICE_KILLED)
+        }
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun registerBluetoothReceiver() {
@@ -204,17 +241,37 @@ class ParkStopForegroundService : Service() {
         val distance = results[0]
         EngineStore.updateLocation(applicationContext, location.latitude, location.longitude, distance)
         logAndBroadcast("info", "מיקום עודכן · מרחק מהחניה: ${distance.toInt()} מ׳")
+
+        val radius = EngineStore.getGeofenceRadiusMeters(applicationContext)
+        val isInside = distance <= radius
+        val wasInside = EngineStore.wasInsideGeofence(applicationContext)
+        if (isInside != wasInside) {
+            EngineStore.setWasInsideGeofence(applicationContext, isInside)
+            if (isInside) {
+                logAndBroadcast("info", "נכנסת לרדיוס ה-Geofence", EngineStore.EventType.GEOFENCE_ENTER)
+            } else {
+                logAndBroadcast("info", "יצאת מרדיוס ה-Geofence", EngineStore.EventType.GEOFENCE_EXIT)
+            }
+        }
+
         evaluateConditions()
     }
 
     private fun evaluateConditions() {
         val state = EngineStore.getState(applicationContext)
-        if (state != EngineStore.State.MONITORING) return
+        if (state != EngineStore.State.MONITORING) {
+            logSkipIfReasonChanged("אין חניה פעילה במעקב (מצב: $state)")
+            return
+        }
 
         val now = System.currentTimeMillis()
-        if (now < EngineStore.getSnoozeUntil(applicationContext)) return
+        if (now < EngineStore.getSnoozeUntil(applicationContext)) {
+            logSkipIfReasonChanged("התזכורת נדחתה (Snooze)")
+            return
+        }
 
         if (EngineStore.useBluetooth(applicationContext) && EngineStore.isBluetoothConnected(applicationContext)) {
+            EngineStore.setLastSkipReason(applicationContext, "")
             triggerAlert(EngineStore.Confidence.HIGH)
             return
         }
@@ -229,16 +286,38 @@ class ParkStopForegroundService : Service() {
 
             if (distance >= 0 && distance <= radius && withinWindow && cooldownOk) {
                 EngineStore.setGeofenceAlertedNow(applicationContext)
+                EngineStore.setLastSkipReason(applicationContext, "")
                 triggerAlert(EngineStore.Confidence.LOW)
+                return
             }
+
+            val reason = when {
+                !withinWindow -> "חלון הגיבוי של Geofence (${EngineStore.getGeofenceWindowMinutes(applicationContext)} דק') פג"
+                !cooldownOk -> null // anti-spam cooldown right after an alert -- not worth logging
+                distance < 0 -> "עדיין לא התקבל מיקום נוכחי"
+                else -> "מחוץ לרדיוס ה-Geofence (${distance.toInt()} מ׳ מתוך $radius מ׳)"
+            }
+            if (reason != null) logSkipIfReasonChanged(reason)
+        } else if (!EngineStore.useBluetooth(applicationContext)) {
+            logSkipIfReasonChanged("לא הוגדר אף איתות זיהוי (בלוטות׳ ו-Geofence כבויים)")
+        } else if (EngineStore.useGeofence(applicationContext)) {
+            logSkipIfReasonChanged("אין עדיין מיקום עוגן לחניה (Geofence)")
         }
+    }
+
+    /** ALERT_SKIPPED is logged once per DISTINCT reason, not every watchdog tick -- otherwise
+     * a multi-hour parking session floods the log with an identical line every 60 seconds. */
+    private fun logSkipIfReasonChanged(reason: String) {
+        if (EngineStore.getLastSkipReason(applicationContext) == reason) return
+        EngineStore.setLastSkipReason(applicationContext, reason)
+        logAndBroadcast("info", "התראה לא נשלחה: $reason", EngineStore.EventType.ALERT_SKIPPED)
     }
 
     private fun triggerAlert(confidence: String) {
         EngineStore.setState(applicationContext, EngineStore.State.ALERT)
         EngineStore.setAlertConfidence(applicationContext, confidence)
         val label = if (confidence == EngineStore.Confidence.HIGH) "ודאות גבוהה (בלוטות׳)" else "ודאות נמוכה (מיקום)"
-        logAndBroadcast("warn", "🔔 זוהתה חזרה לרכב — $label")
+        logAndBroadcast("warn", "🔔 זוהתה חזרה לרכב — $label", EngineStore.EventType.ALERT_SENT)
 
         val notification = NotificationHelper.buildAlertNotification(
             applicationContext,
@@ -251,8 +330,8 @@ class ParkStopForegroundService : Service() {
         postStatus()
     }
 
-    private fun logAndBroadcast(level: String, message: String) {
-        val entry = EngineStore.appendLog(applicationContext, level, message)
+    private fun logAndBroadcast(level: String, message: String, type: String = EngineStore.EventType.INFO) {
+        val entry = EngineStore.appendLog(applicationContext, level, message, type)
         EngineEvents.postLogAdded(entry)
     }
 

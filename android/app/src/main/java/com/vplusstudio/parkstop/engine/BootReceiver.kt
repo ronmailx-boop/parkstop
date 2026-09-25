@@ -11,6 +11,12 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
         val state = EngineStore.getState(context)
+        val entry = EngineStore.appendLog(
+            context, "info", "הטלפון הופעל מחדש",
+            EngineStore.EventType.BOOT_COMPLETED
+        )
+        EngineEvents.postLogAdded(entry)
+
         if (state == EngineStore.State.MONITORING || state == EngineStore.State.ALERT) {
             EngineStore.setState(context, EngineStore.State.MONITORING)
             ContextCompat.startForegroundService(context, Intent(context, ParkStopForegroundService::class.java))
