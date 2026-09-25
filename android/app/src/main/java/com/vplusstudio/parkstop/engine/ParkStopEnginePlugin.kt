@@ -105,7 +105,7 @@ class ParkStopEnginePlugin : Plugin(), EngineEvents.Listener {
 
         EngineStore.startSession(context, params)
         ContextCompat.startForegroundService(context, Intent(context, ParkStopForegroundService::class.java))
-        val entry = EngineStore.appendLog(context, "success", "חניה הופעלה: ${params.parkingAppName}")
+        val entry = EngineStore.appendLog(context, "success", "חניה הופעלה: ${params.parkingAppName}", EngineStore.EventType.PARKING_STARTED)
         EngineEvents.postLogAdded(entry)
         EngineEvents.postStatusChanged(EngineStore.buildStatus(context))
 
@@ -216,6 +216,121 @@ class ParkStopEnginePlugin : Plugin(), EngineEvents.Listener {
             return
         }
         context.startActivity(intent)
+        call.resolve()
+    }
+
+    /** Per-permission granted/denied, independent of the Capacitor "core" alias which
+     * bundles location+bluetooth+notifications together and can't tell them apart. */
+    @PluginMethod
+    fun getDetailedPermissionStatus(call: PluginCall) {
+        fun granted(permission: String): Boolean =
+            ContextCompat.checkSelfPermission(context, permission) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        val result = JSObject()
+        result.put("location", granted(Manifest.permission.ACCESS_FINE_LOCATION))
+        result.put(
+            "backgroundLocation",
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) granted(Manifest.permission.ACCESS_BACKGROUND_LOCATION) else true
+        )
+        result.put(
+            "bluetooth",
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) granted(Manifest.permission.BLUETOOTH_CONNECT) else true
+        )
+        result.put(
+            "notifications",
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) granted(Manifest.permission.POST_NOTIFICATIONS) else true
+        )
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun restartServiceIfNeeded(call: PluginCall) {
+        val restarted = EngineActions.restartServiceIfDead(context)
+        val result = JSObject()
+        result.put("restarted", restarted)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun isServiceRunning(call: PluginCall) {
+        val result = JSObject()
+        result.put("running", ParkStopForegroundService.isRunning)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun isSamsungDevice(call: PluginCall) {
+        val result = JSObject()
+        result.put("isSamsung", Build.MANUFACTURER.equals("samsung", ignoreCase = true))
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun openAppSettings(call: PluginCall) {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:${context.packageName}")
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun sendTestAlert(call: PluginCall) {
+        NotificationHelper.ensureChannels(context)
+        val notification = NotificationHelper.buildAlertNotification(
+            context,
+            EngineStore.Confidence.HIGH,
+            EngineStore.getParkingAppName(context).ifBlank { "אפליקציית חניה" },
+            EngineStore.getParkingAppPackage(context),
+            EngineStore.getParkingAppDeepLink(context)
+        )
+        NotificationHelper.notify(context, NotificationHelper.ALERT_NOTIFICATION_ID, notification)
+        val entry = EngineStore.appendLog(context, "info", "נשלחה התראת בדיקה", EngineStore.EventType.TEST_ALERT)
+        EngineEvents.postLogAdded(entry)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun scheduleTestAlert(call: PluginCall) {
+        val delaySeconds = call.getInt("delaySeconds", 30) ?: 30
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        val intent = Intent(context, AlertActionReceiver::class.java).setAction(Actions.ACTION_TEST_ALERT)
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            context, 6, intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+        val triggerAt = System.currentTimeMillis() + delaySeconds * 1000L
+        alarmManager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+
+        val entry = EngineStore.appendLog(
+            context, "info", "התראת בדיקה מתוזמנת בעוד $delaySeconds שניות", EngineStore.EventType.TEST_ALERT
+        )
+        EngineEvents.postLogAdded(entry)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun simulateBluetoothConnect(call: PluginCall) {
+        if (EngineStore.getState(context) != EngineStore.State.MONITORING) {
+            call.reject("אין חניה פעילה במעקב — אי אפשר להדמות חיבור בלוטות׳")
+            return
+        }
+        val intent = Intent(context, ParkStopForegroundService::class.java).setAction(Actions.ACTION_SIMULATE_BT_CONNECT)
+        ContextCompat.startForegroundService(context, intent)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun shareLogs(call: PluginCall) {
+        val text = EngineStore.formatLogsAsText(context)
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+            putExtra(Intent.EXTRA_SUBJECT, "ParkStop – יומן אירועים")
+        }
+        val chooser = Intent.createChooser(sendIntent, "שתף יומן").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
         call.resolve()
     }
 }

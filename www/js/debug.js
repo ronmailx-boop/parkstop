@@ -9,6 +9,7 @@
     dsUpdated: document.getElementById('ds-updated'),
     logList: document.getElementById('log-list'),
     clearLogsBtn: document.getElementById('clear-logs-btn'),
+    shareLogsBtn: document.getElementById('share-logs-btn'),
   };
 
   const LEVEL_ICON = { info: 'ℹ️', warn: '⚠️', error: '⛔', success: '✅' };
@@ -50,6 +51,10 @@
     els.clearLogsBtn.addEventListener('click', async () => {
       await ParkStopNative.clearLogs();
       await refreshLogs();
+    });
+
+    els.shareLogsBtn.addEventListener('click', async () => {
+      await ParkStopNative.shareLogs();
     });
 
     ParkStopNative.addListener('logAdded', refreshLogs);

@@ -25,9 +25,12 @@
     </section>
 
     <section class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;">
         <h2 style="margin:0;">אירועים אחרונים</h2>
-        <button id="clear-logs-btn" class="btn btn-ghost" style="width:auto;padding:6px 14px;font-size:13px;">נקה</button>
+        <span style="display:flex;gap:8px;">
+          <button id="share-logs-btn" class="btn btn-ghost" style="width:auto;padding:6px 14px;font-size:13px;">שתף</button>
+          <button id="clear-logs-btn" class="btn btn-ghost" style="width:auto;padding:6px 14px;font-size:13px;">נקה</button>
+        </span>
       </div>
       <div id="log-list" class="log-list">
         <p class="empty-state">אין עדיין אירועים</p>

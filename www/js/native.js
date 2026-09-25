@@ -77,6 +77,44 @@
       return nativePlugin ? nativePlugin.openAppDeepLink(options) : unavailable('openAppDeepLink');
     },
 
+    getDetailedPermissionStatus() {
+      return nativePlugin
+        ? nativePlugin.getDetailedPermissionStatus()
+        : Promise.resolve({ location: false, backgroundLocation: false, bluetooth: false, notifications: false });
+    },
+
+    isServiceRunning() {
+      return nativePlugin ? nativePlugin.isServiceRunning() : Promise.resolve({ running: false });
+    },
+
+    restartServiceIfNeeded() {
+      return nativePlugin ? nativePlugin.restartServiceIfNeeded() : Promise.resolve({ restarted: false });
+    },
+
+    isSamsungDevice() {
+      return nativePlugin ? nativePlugin.isSamsungDevice() : Promise.resolve({ isSamsung: false });
+    },
+
+    openAppSettings() {
+      return nativePlugin ? nativePlugin.openAppSettings() : unavailable('openAppSettings');
+    },
+
+    sendTestAlert() {
+      return nativePlugin ? nativePlugin.sendTestAlert() : unavailable('sendTestAlert');
+    },
+
+    scheduleTestAlert(delaySeconds) {
+      return nativePlugin ? nativePlugin.scheduleTestAlert({ delaySeconds }) : unavailable('scheduleTestAlert');
+    },
+
+    simulateBluetoothConnect() {
+      return nativePlugin ? nativePlugin.simulateBluetoothConnect() : unavailable('simulateBluetoothConnect');
+    },
+
+    shareLogs() {
+      return nativePlugin ? nativePlugin.shareLogs() : unavailable('shareLogs');
+    },
+
     addListener(eventName, callback) {
       if (!nativePlugin) return { remove: () => {} };
       return nativePlugin.addListener(eventName, callback);

@@ -14,7 +14,25 @@ import com.getcapacitor.JSObject
  */
 object EngineStore {
     private const val PREFS_NAME = "parkstop_engine"
-    private const val MAX_LOG_ENTRIES = 200
+    private const val MAX_LOG_ENTRIES = 500
+
+    /** Structured event types, alongside the free-text Hebrew `message` shown in the UI. */
+    object EventType {
+        const val PARKING_STARTED = "PARKING_STARTED"
+        const val PARKING_STOPPED = "PARKING_STOPPED"
+        const val BT_CONNECTED = "BT_CONNECTED"
+        const val BT_DISCONNECTED = "BT_DISCONNECTED"
+        const val GEOFENCE_ENTER = "GEOFENCE_ENTER"
+        const val GEOFENCE_EXIT = "GEOFENCE_EXIT"
+        const val ALERT_SENT = "ALERT_SENT"
+        const val ALERT_SKIPPED = "ALERT_SKIPPED"
+        const val SERVICE_STARTED = "SERVICE_STARTED"
+        const val SERVICE_KILLED = "SERVICE_KILLED"
+        const val BOOT_COMPLETED = "BOOT_COMPLETED"
+        const val HEARTBEAT = "HEARTBEAT"
+        const val TEST_ALERT = "TEST_ALERT"
+        const val INFO = ""
+    }
 
     object State {
         const val IDLE = "IDLE"
@@ -54,6 +72,9 @@ object EngineStore {
         const val SNOOZE_UNTIL = "snoozeUntil"
         const val ALERT_CONFIDENCE = "alertConfidence"
         const val LOGS = "logs"
+        const val LAST_HEARTBEAT_AT = "lastHeartbeatAt"
+        const val LAST_SKIP_REASON = "lastSkipReason"
+        const val WAS_INSIDE_GEOFENCE = "wasInsideGeofence"
     }
 
     data class StartParams(
@@ -96,6 +117,9 @@ object EngineStore {
             remove(Keys.GEOFENCE_ALERTED_AT)
             remove(Keys.SNOOZE_UNTIL)
             remove(Keys.ALERT_CONFIDENCE)
+            remove(Keys.LAST_SKIP_REASON)
+            remove(Keys.WAS_INSIDE_GEOFENCE)
+            remove(Keys.LAST_HEARTBEAT_AT)
         }.apply()
     }
 
@@ -121,6 +145,9 @@ object EngineStore {
             remove(Keys.GEOFENCE_ALERTED_AT)
             remove(Keys.SNOOZE_UNTIL)
             remove(Keys.ALERT_CONFIDENCE)
+            remove(Keys.LAST_SKIP_REASON)
+            remove(Keys.WAS_INSIDE_GEOFENCE)
+            remove(Keys.LAST_HEARTBEAT_AT)
         }.apply()
     }
 
@@ -181,6 +208,24 @@ object EngineStore {
 
     fun getSnoozeUntil(context: Context): Long = prefs(context).getLong(Keys.SNOOZE_UNTIL, 0L)
 
+    fun getLastHeartbeatAt(context: Context): Long = prefs(context).getLong(Keys.LAST_HEARTBEAT_AT, 0L)
+
+    fun setLastHeartbeatNow(context: Context) {
+        prefs(context).edit().putLong(Keys.LAST_HEARTBEAT_AT, System.currentTimeMillis()).apply()
+    }
+
+    fun getLastSkipReason(context: Context): String = prefs(context).getString(Keys.LAST_SKIP_REASON, "") ?: ""
+
+    fun setLastSkipReason(context: Context, reason: String) {
+        prefs(context).edit().putString(Keys.LAST_SKIP_REASON, reason).apply()
+    }
+
+    fun wasInsideGeofence(context: Context): Boolean = prefs(context).getBoolean(Keys.WAS_INSIDE_GEOFENCE, false)
+
+    fun setWasInsideGeofence(context: Context, inside: Boolean) {
+        prefs(context).edit().putBoolean(Keys.WAS_INSIDE_GEOFENCE, inside).apply()
+    }
+
     fun buildStatus(context: Context): JSObject {
         val p = prefs(context)
         val status = JSObject()
@@ -195,6 +240,8 @@ object EngineStore {
         status.put("startedAt", p.getLong(Keys.STARTED_AT, 0L))
         status.put("alertConfidence", p.getString(Keys.ALERT_CONFIDENCE, ""))
         status.put("snoozeUntil", p.getLong(Keys.SNOOZE_UNTIL, 0L))
+        status.put("carDeviceAddress", p.getString(Keys.CAR_DEVICE_ADDRESS, ""))
+        status.put("carDeviceName", p.getString(Keys.CAR_DEVICE_NAME, ""))
 
         if (p.getBoolean(Keys.HAS_LAST_LOCATION, false)) {
             status.put("lastLat", p.getFloat(Keys.LAST_LAT, 0f).toDouble())
@@ -211,7 +258,7 @@ object EngineStore {
         return status
     }
 
-    fun appendLog(context: Context, level: String, message: String): JSObject {
+    fun appendLog(context: Context, level: String, message: String, type: String = EventType.INFO): JSObject {
         val p = prefs(context)
         val raw = p.getString(Keys.LOGS, "[]") ?: "[]"
         val array = try { JSArray(raw) } catch (e: Exception) { JSArray() }
@@ -220,6 +267,7 @@ object EngineStore {
         entry.put("timestamp", System.currentTimeMillis())
         entry.put("level", level)
         entry.put("message", message)
+        entry.put("type", type)
 
         val trimmed = JSArray()
         val start = if (array.length() >= MAX_LOG_ENTRIES) array.length() - MAX_LOG_ENTRIES + 1 else 0
@@ -239,5 +287,22 @@ object EngineStore {
 
     fun clearLogs(context: Context) {
         prefs(context).edit().putString(Keys.LOGS, "[]").apply()
+    }
+
+    /** Plain-text dump of the log, newest last, for sharing out of the app (e.g. for analysis). */
+    fun formatLogsAsText(context: Context): String {
+        val entries = getLogs(context)
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+        val lines = StringBuilder("ParkStop – יומן אירועים\n\n")
+        for (i in 0 until entries.length()) {
+            val entry = entries.getJSONObject(i)
+            val timestamp = entry.optLong("timestamp", 0L)
+            val time = if (timestamp > 0) sdf.format(java.util.Date(timestamp)) else "—"
+            val type = entry.optString("type", "").ifBlank { "INFO" }
+            val level = entry.optString("level", "info")
+            val message = entry.optString("message", "")
+            lines.append("[$time] $type ($level): $message\n")
+        }
+        return lines.toString()
     }
 }
