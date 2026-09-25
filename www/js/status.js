@@ -16,14 +16,15 @@
     return ok ? '<span class="chip ok">תקין</span>' : '<span class="chip fail">חסר</span>';
   }
 
-  function row(title, ok, fixLabel, fixHandlerName) {
+  function row(title, ok, fixLabel, fixHandlerName, hintWhenFail) {
     const fixBtn = !ok && fixLabel
       ? `<button class="btn btn-ghost" data-fix="${fixHandlerName}">${fixLabel}</button>`
       : '';
+    const hint = !ok && hintWhenFail ? `<p class="hint">${hintWhenFail}</p>` : '';
     return `<div class="checklist-row">
       <span class="row-title">${title}</span>
       <span class="checklist-actions">${chip(ok)}${fixBtn}</span>
-    </div>`;
+    </div>${hint}`;
   }
 
   async function buildChecklist() {
@@ -40,7 +41,15 @@
 
     const rows = [
       row('שירות רקע רץ', serviceOk, isActive ? 'הפעל מחדש' : null, 'restartService'),
-      row('מיקום "תמיד" (ברקע)', perms.backgroundLocation, 'פתח הגדרות', 'openAppSettings'),
+      row(
+        'מיקום "תמיד" (ברקע)',
+        perms.backgroundLocation,
+        'פתח הגדרות',
+        'openAppSettings',
+        'המסך שנפתח הוא פרטי האפליקציה. היכנסו ל״הרשאות״ ‹ ״מיקום״, ובחרו ידנית ' +
+          '״אפשר תמיד״ (לא ״רק בזמן שהאפליקציה בשימוש״) — אנדרואיד לא תמיד מציע את זה ' +
+          'ישירות בבקשת ההרשאה הרגילה.'
+      ),
       row('הרשאת בלוטות׳', perms.bluetooth, 'בקש הרשאה', 'requestPermissions'),
       row('הרשאת התראות', perms.notifications, 'בקש הרשאה', 'requestPermissions'),
       row('פטור מאופטימיזציית סוללה', battery.ignoring, 'פתח הגדרות סוללה', 'openBattery'),
