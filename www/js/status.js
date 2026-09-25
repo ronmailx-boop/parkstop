@@ -52,7 +52,7 @@
       ),
       row('הרשאת בלוטות׳', perms.bluetooth, 'בקש הרשאה', 'requestPermissions'),
       row('הרשאת התראות', perms.notifications, 'בקש הרשאה', 'requestPermissions'),
-      row('פטור מאופטימיזציית סוללה', battery.ignoring, 'פתח הגדרות סוללה', 'openBattery'),
+      row('פטור מאופטימיזציית סוללה', battery.ignoring, 'פתח הגדרות', 'openBattery'),
       row('מכשיר רכב הוגדר', carDeviceOk, 'בחר מכשיר', 'openSettings'),
       row('חניה פעילה', isActive, null, null) + `<p class="hint">${stateLabel(status.state)}</p>`,
     ];
