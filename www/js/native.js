@@ -73,6 +73,10 @@
       return nativePlugin ? nativePlugin.openBatteryOptimizationSettings() : unavailable('openBatteryOptimizationSettings');
     },
 
+    openSamsungDeviceCare() {
+      return nativePlugin ? nativePlugin.openSamsungDeviceCare() : unavailable('openSamsungDeviceCare');
+    },
+
     openAppDeepLink(options) {
       return nativePlugin ? nativePlugin.openAppDeepLink(options) : unavailable('openAppDeepLink');
     },

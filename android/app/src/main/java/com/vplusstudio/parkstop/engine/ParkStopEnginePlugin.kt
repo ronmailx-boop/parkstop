@@ -265,6 +265,32 @@ class ParkStopEnginePlugin : Plugin(), EngineEvents.Listener {
         call.resolve(result)
     }
 
+    /** The generic Android "ignore battery optimizations" dialog (openBatteryOptimizationSettings)
+     * is a DIFFERENT setting from Samsung's own "Background usage limits" / sleeping-apps list --
+     * granting one does not grant the other, and once the generic one is already granted, firing
+     * that intent again shows no UI at all (which looked like a dead button). This opens Samsung's
+     * own Device Care app instead, where the user can navigate to Background usage limits. */
+    @PluginMethod
+    fun openSamsungDeviceCare(call: PluginCall) {
+        val intent = context.packageManager.getLaunchIntentForPackage("com.samsung.android.lool")
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            call.resolve()
+            return
+        }
+        try {
+            val fallback = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:${context.packageName}")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(fallback)
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject("לא ניתן לפתוח את אפליקציית טיפול במכשיר")
+        }
+    }
+
     @PluginMethod
     fun openAppSettings(call: PluginCall) {
         val intent = Intent(

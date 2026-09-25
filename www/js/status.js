@@ -100,7 +100,7 @@
     });
 
     els.samsungSettingsBtn.addEventListener('click', () => {
-      ParkStopNative.openBatteryOptimizationSettings();
+      ParkStopNative.openSamsungDeviceCare();
     });
 
     els.samsungDoneCheckbox.addEventListener('change', async () => {
