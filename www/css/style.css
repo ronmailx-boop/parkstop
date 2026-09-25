@@ -384,12 +384,18 @@ label {
 .checklist-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px 10px;
   padding: 12px 0;
 }
 
 .checklist-row + .checklist-row { border-top: 1px solid var(--color-border); }
+
+.checklist-row .row-title {
+  flex: 1 1 140px;
+  min-width: 0;
+}
 
 .checklist-row .checklist-actions {
   display: flex;
