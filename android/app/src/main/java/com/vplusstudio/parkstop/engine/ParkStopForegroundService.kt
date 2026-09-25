@@ -7,12 +7,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.content.ContextCompat
+import java.util.Locale
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -116,8 +119,11 @@ class ParkStopForegroundService : Service() {
         return START_STICKY
     }
 
+    /** Captures the parking spot's location -- used as the Geofence detection anchor when that
+     * signal is enabled, and always used to resolve + display a human-readable address, even
+     * for Bluetooth-only sessions, so the user can find their way back in an unfamiliar area. */
     private fun captureAnchorIfNeeded() {
-        if (!EngineStore.useGeofence(applicationContext) || EngineStore.hasAnchor(applicationContext)) return
+        if (EngineStore.hasAnchor(applicationContext)) return
         val client = fusedLocationClient ?: return
 
         val hasPermission = ContextCompat.checkSelfPermission(
@@ -125,7 +131,7 @@ class ParkStopForegroundService : Service() {
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (!hasPermission) {
-            logAndBroadcast("warn", "אין הרשאת מיקום — איתות Geofence לא יהיה זמין לחניה זו")
+            logAndBroadcast("warn", "אין הרשאת מיקום — כתובת החניה ואיתות Geofence לא יהיו זמינים לחניה זו")
             return
         }
 
@@ -148,6 +154,7 @@ class ParkStopForegroundService : Service() {
                         EngineStore.setWasInsideGeofence(applicationContext, true)
                         logAndBroadcast("success", "מיקום החניה נשמר (דיוק ±${location.accuracy.toInt()} מ׳)")
                         postStatus()
+                        resolveAnchorAddress(location.latitude, location.longitude)
                     } else {
                         logAndBroadcast("warn", "לא ניתן היה לאתר מיקום נוכחי לשמירת החניה")
                     }
@@ -157,6 +164,50 @@ class ParkStopForegroundService : Service() {
                 }
         } catch (e: SecurityException) {
             logAndBroadcast("error", "אין הרשאת מיקום — לא ניתן לשמור את מיקום החניה")
+        }
+    }
+
+    /** Reverse-geocodes the parking spot into a human-readable street address, so the user can
+     * find their way back to the car in an unfamiliar area while the session is active. Best
+     * effort: silently gives up if Geocoder is unavailable or resolves nothing (the raw
+     * coordinates + the "navigate" button still work either way). */
+    private fun resolveAnchorAddress(lat: Double, lng: Double) {
+        if (!Geocoder.isPresent()) return
+
+        fun onAddressesResolved(addresses: List<Address>?) {
+            // The session may have been stopped while this was resolving in the background.
+            if (EngineStore.getState(applicationContext) == EngineStore.State.IDLE) return
+            val address = addresses?.firstOrNull() ?: return
+
+            val street = address.thoroughfare
+            val houseNumber = address.subThoroughfare
+            val city = address.locality
+            val parts = mutableListOf<String>()
+            if (!street.isNullOrBlank()) {
+                parts.add(if (!houseNumber.isNullOrBlank()) "$street $houseNumber" else street)
+            }
+            if (!city.isNullOrBlank()) parts.add(city)
+            val formatted = if (parts.isNotEmpty()) parts.joinToString(", ") else address.getAddressLine(0)
+            if (formatted.isNullOrBlank()) return
+
+            EngineStore.setAnchorAddress(applicationContext, formatted)
+            logAndBroadcast("info", "כתובת החניה זוהתה: $formatted")
+            postStatus()
+        }
+
+        val geocoder = Geocoder(applicationContext, Locale("iw", "IL"))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            geocoder.getFromLocation(lat, lng, 1) { addresses -> onAddressesResolved(addresses) }
+        } else {
+            Thread {
+                @Suppress("DEPRECATION")
+                val addresses = try {
+                    geocoder.getFromLocation(lat, lng, 1)
+                } catch (e: Exception) {
+                    null
+                }
+                watchdogHandler.post { onAddressesResolved(addresses) }
+            }.start()
         }
     }
 

@@ -16,6 +16,9 @@
     activeAppName: document.getElementById('active-app-name'),
     activeSince: document.getElementById('active-since'),
     signalSummary: document.getElementById('signal-summary'),
+    parkingAddressField: document.getElementById('parking-address-field'),
+    parkingAddressText: document.getElementById('parking-address-text'),
+    navigateBtn: document.getElementById('navigate-btn'),
     openAppBtn: document.getElementById('open-app-btn'),
     stoppedBtn: document.getElementById('stopped-btn'),
     snoozeBtn: document.getElementById('snooze-btn'),
@@ -83,6 +86,13 @@
         parts.push(`📍 מרחק מהחניה: ${formatDistance(status.lastDistanceMeters)}`);
       }
       els.signalSummary.textContent = parts.join(' · ') || 'ממתין לאיתותים...';
+
+      if (status.hasAnchor) {
+        els.parkingAddressField.style.display = 'block';
+        els.parkingAddressText.textContent = status.anchorAddress || 'מאתר כתובת...';
+      } else {
+        els.parkingAddressField.style.display = 'none';
+      }
     } else if (state === 'ALERT') {
       els.alertCard.style.display = 'block';
     }
@@ -150,6 +160,14 @@
     });
   }
 
+  async function handleNavigate() {
+    try {
+      await ParkStopNative.openNavigationToParkingSpot();
+    } catch (e) {
+      showToast('לא ניתן לפתוח ניווט — מיקום החניה עדיין לא ידוע');
+    }
+  }
+
   function bindEvents() {
     els.parkingAppSelect.addEventListener('change', toggleCustomField);
     els.startBtn.addEventListener('click', handleStart);
@@ -157,6 +175,7 @@
     els.stoppedBtn.addEventListener('click', handleStop);
     els.snoozeBtn.addEventListener('click', handleSnooze);
     els.openAppBtn.addEventListener('click', handleOpenApp);
+    els.navigateBtn.addEventListener('click', handleNavigate);
 
     ParkStopNative.addListener('statusChanged', (status) => renderStatus(status));
 
