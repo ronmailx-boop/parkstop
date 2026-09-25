@@ -30,7 +30,13 @@
       els.logList.innerHTML = '<p class="empty-state">אין עדיין אירועים</p>';
       return;
     }
+    // Stored oldest-first (each new event is appended); reverse here so the newest
+    // entry is the first DOM element, and therefore reliably the first thing shown
+    // at the top of the list -- relying on CSS (column-reverse) for this instead
+    // was fragile together with the list's own scroll container.
     els.logList.innerHTML = entries
+      .slice()
+      .reverse()
       .map((e) => {
         const level = e.level || 'info';
         return `<div class="log-entry ${level}"><span class="log-time">${formatTime(e.timestamp)}</span>${LEVEL_ICON[level] || ''} ${escapeHtml(e.message)}</div>`;
