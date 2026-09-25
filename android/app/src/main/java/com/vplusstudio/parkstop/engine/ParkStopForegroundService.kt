@@ -35,6 +35,7 @@ class ParkStopForegroundService : Service() {
         private const val WATCHDOG_INTERVAL_MS = 60_000L
         private const val GEOFENCE_ALERT_COOLDOWN_MS = 5 * 60_000L
         private const val HEARTBEAT_INTERVAL_MS = 30 * 60_000L
+        private const val LOCATION_ACCURACY_THRESHOLD_METERS = 100f
 
         /** Whether the service object is currently alive. Read by the Status screen -- a
          * state of MONITORING with this false means Android killed the service silently. */
@@ -129,8 +130,10 @@ class ParkStopForegroundService : Service() {
         }
 
         try {
+            // High accuracy (not balanced) since this is a one-shot call at parking start,
+            // not a recurring poll -- a coarse/cached fix here would seed a bad anchor.
             val request = CurrentLocationRequest.Builder()
-                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                 .build()
             val cancellationSource = CancellationTokenSource()
             anchorCancellationSource = cancellationSource
@@ -138,7 +141,12 @@ class ParkStopForegroundService : Service() {
                 .addOnSuccessListener { location ->
                     if (location != null) {
                         EngineStore.setAnchor(applicationContext, location.latitude, location.longitude)
-                        logAndBroadcast("success", "מיקום החניה נשמר")
+                        // Seed the baseline as "inside" -- you're standing at this exact spot
+                        // when the anchor is captured, so the next location update must not
+                        // read as an ENTER transition (that previously fired the alert
+                        // immediately on starting a session, before you'd even left the car).
+                        EngineStore.setWasInsideGeofence(applicationContext, true)
+                        logAndBroadcast("success", "מיקום החניה נשמר (דיוק ±${location.accuracy.toInt()} מ׳)")
                         postStatus()
                     } else {
                         logAndBroadcast("warn", "לא ניתן היה לאתר מיקום נוכחי לשמירת החניה")
@@ -230,6 +238,11 @@ class ParkStopForegroundService : Service() {
     private fun handleLocationUpdate(location: Location) {
         if (!EngineStore.hasAnchor(applicationContext)) return
 
+        if (location.accuracy > LOCATION_ACCURACY_THRESHOLD_METERS) {
+            logAndBroadcast("info", "התעלמות מעדכון מיקום לא מדויק (±${location.accuracy.toInt()} מ׳)")
+            return
+        }
+
         val results = FloatArray(1)
         Location.distanceBetween(
             EngineStore.getAnchorLat(applicationContext),
@@ -240,11 +253,12 @@ class ParkStopForegroundService : Service() {
         )
         val distance = results[0]
         EngineStore.updateLocation(applicationContext, location.latitude, location.longitude, distance)
-        logAndBroadcast("info", "מיקום עודכן · מרחק מהחניה: ${distance.toInt()} מ׳")
+        logAndBroadcast("info", "מיקום עודכן · מרחק מהחניה: ${distance.toInt()} מ׳ (דיוק ±${location.accuracy.toInt()} מ׳)")
 
         val radius = EngineStore.getGeofenceRadiusMeters(applicationContext)
         val isInside = distance <= radius
         val wasInside = EngineStore.wasInsideGeofence(applicationContext)
+        val justEntered = isInside && !wasInside
         if (isInside != wasInside) {
             EngineStore.setWasInsideGeofence(applicationContext, isInside)
             if (isInside) {
@@ -254,10 +268,14 @@ class ParkStopForegroundService : Service() {
             }
         }
 
-        evaluateConditions()
+        evaluateConditions(justEntered)
     }
 
-    private fun evaluateConditions() {
+    /** [geofenceJustEntered] gates the geofence alert on an actual RETURN transition (you were
+     * outside the radius, now you're back inside) rather than "currently inside" -- otherwise
+     * the alert fired immediately on starting a session, since you're standing next to the car
+     * (inside the radius) the moment you press start, before you've gone anywhere. */
+    private fun evaluateConditions(geofenceJustEntered: Boolean = false) {
         val state = EngineStore.getState(applicationContext)
         if (state != EngineStore.State.MONITORING) {
             logSkipIfReasonChanged("אין חניה פעילה במעקב (מצב: $state)")
@@ -284,7 +302,7 @@ class ParkStopForegroundService : Service() {
             val withinWindow = (now - startedAt) <= windowMs
             val cooldownOk = (now - EngineStore.getGeofenceAlertedAt(applicationContext)) >= GEOFENCE_ALERT_COOLDOWN_MS
 
-            if (distance >= 0 && distance <= radius && withinWindow && cooldownOk) {
+            if (geofenceJustEntered && withinWindow && cooldownOk) {
                 EngineStore.setGeofenceAlertedNow(applicationContext)
                 EngineStore.setLastSkipReason(applicationContext, "")
                 triggerAlert(EngineStore.Confidence.LOW)
@@ -295,6 +313,7 @@ class ParkStopForegroundService : Service() {
                 !withinWindow -> "חלון הגיבוי של Geofence (${EngineStore.getGeofenceWindowMinutes(applicationContext)} דק') פג"
                 !cooldownOk -> null // anti-spam cooldown right after an alert -- not worth logging
                 distance < 0 -> "עדיין לא התקבל מיקום נוכחי"
+                distance <= radius -> "בתוך רדיוס ה-Geofence — ממתין ליציאה וכניסה מחדש כדי לזהות חזרה"
                 else -> "מחוץ לרדיוס ה-Geofence (${distance.toInt()} מ׳ מתוך $radius מ׳)"
             }
             if (reason != null) logSkipIfReasonChanged(reason)
