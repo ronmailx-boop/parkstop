@@ -53,6 +53,15 @@
 - [x] אייקון האפליקציה מוצג נכון ב-my-site (אגרגטור האפליקציות של
       המשתמש ב-Vercel) — דרך Edge Function צד-שרת ב-my-site שפותר
       אייקונים בלי חסימת CORS; אומת ע"י המשתמש שעובד.
+- [x] כלי אבחון ובדיקה על המכשיר (לפי `PARKSTOP_TESTING_SPEC.md` שהמשתמש
+      סיפק): יומן אירועים נטיבי משודרג (500 רשומות, `type` מובנה,
+      `ALERT_SKIPPED` עם סיבה מוגבלת-שכפול, `GEOFENCE_ENTER/EXIT`,
+      `SERVICE_KILLED` מ-`onDestroy`/`onTaskRemoved`, `HEARTBEAT` כל 30
+      דק', `BOOT_COMPLETED`, כפתור שיתוף יומן); מסך `status.html` חדש —
+      רשימת מוכנות עם כפתורי "תקן" לכל שורה (כולל בדיקת הרשאות פרטנית
+      חדשה, לא רק ה-alias המאוחד של Capacitor), כרטיס Samsung עם
+      checkbox מתמיד, וכלי בדיקה (התראת בדיקה מיידית/מושהית ב-30 שניות
+      דרך AlarmManager, הדמיית חיבור בלוטות', חניית בדיקה בלחיצה אחת).
 
 ## מה נשאר / דורש תשומת לב [ ]
 
@@ -84,11 +93,10 @@ Store. ממצאים ותיקונים:
 - **תקין:** `<queries>` ל-package visibility, `targetSdk`/`compileSdk`
   34, versionCode אוטומטי (run_number) + versionName תקין (1.0.x),
   build חתום + AAB עולים כ-artifacts מה-CI.
-- **להשאיר תחת מעקב (לא באג ודאי):** ה-foreground service מוצהר עם
-  `foregroundServiceType="location"` בלבד, אך גם מאזין לאירועי בלוטות'
-  ברקע. ברוב המקרים זה תקין (BroadcastReceiver לא דורש הצהרת FGS type
-  נפרדת), אבל Play Console מריץ Pre-launch report אוטומטי שיתריע אם
-  Google חושבת אחרת — כדאי לשים לב לדוח הזה בהעלאה הראשונה.
+- **תוקן (בשלב כלי האבחון):** ה-foreground service היה מוצהר עם
+  `foregroundServiceType="location"` בלבד, למרות שהוא גם מאזין באופן
+  שוטף לאירועי בלוטות' ברקע. שונה ל-`"location|connectedDevice"` +
+  נוספה הרשאת `FOREGROUND_SERVICE_CONNECTED_DEVICE`, כנדרש ב-Android 14+.
 
 ## תקלות שתוקנו (היסטוריה קצרה)
 
@@ -131,8 +139,11 @@ Store. ממצאים ותיקונים:
 
 ## Current Focus
 
-ביקורת המוכנות ל-Play Store הושלמה (קוד/מניפסט/אייקונים/מסמכים) — ראו
-סעיף למעלה. מה שנשאר הוא פעולות שרק המשתמש יכול לבצע: לצלם מסכי אמת
-מהמכשיר, ולהעלות בפועל ל-Play Console (closed testing, Data Safety
-form, הצהרת background location + סרטון, נימוק ל-battery optimization
-permission).
+ביקורת המוכנות ל-Play Store הושלמה, וכלי אבחון/בדיקה על המכשיר נוספו
+(מסך סטטוס + יומן אירועים משודרג + כלי בדיקה). השלב הבא: המשתמש מריץ
+את פרוטוקול בדיקות השטח (`PARKSTOP_TESTING_SPEC.md` § 6) על ה-S25FE —
+התראת בדיקה, מסך נעול, חניה ארוכה, הפעלה מחדש — תוך שימוש במסכי
+הסטטוס/Debug החדשים לאבחון. בנוסף עדיין פתוחות פעולות שרק המשתמש יכול
+לבצע: לצלם מסכי אמת מהמכשיר, ולהעלות בפועל ל-Play Console (closed
+testing, Data Safety form, הצהרת background location + סרטון, נימוק
+ל-battery optimization permission).
