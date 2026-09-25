@@ -61,6 +61,7 @@ object EngineStore {
         const val ANCHOR_LAT = "anchorLat"
         const val ANCHOR_LNG = "anchorLng"
         const val HAS_ANCHOR = "hasAnchor"
+        const val ANCHOR_ADDRESS = "anchorAddress"
         const val BLUETOOTH_CONNECTED = "bluetoothConnected"
         const val LAST_LAT = "lastLat"
         const val LAST_LNG = "lastLng"
@@ -120,6 +121,7 @@ object EngineStore {
             remove(Keys.LAST_SKIP_REASON)
             remove(Keys.WAS_INSIDE_GEOFENCE)
             remove(Keys.LAST_HEARTBEAT_AT)
+            remove(Keys.ANCHOR_ADDRESS)
         }.apply()
     }
 
@@ -135,6 +137,12 @@ object EngineStore {
     fun getAnchorLat(context: Context): Double = prefs(context).getFloat(Keys.ANCHOR_LAT, 0f).toDouble()
     fun getAnchorLng(context: Context): Double = prefs(context).getFloat(Keys.ANCHOR_LNG, 0f).toDouble()
 
+    fun setAnchorAddress(context: Context, address: String) {
+        prefs(context).edit().putString(Keys.ANCHOR_ADDRESS, address).apply()
+    }
+
+    fun getAnchorAddress(context: Context): String = prefs(context).getString(Keys.ANCHOR_ADDRESS, "") ?: ""
+
     fun reset(context: Context) {
         prefs(context).edit().apply {
             putString(Keys.STATE, State.IDLE)
@@ -148,6 +156,7 @@ object EngineStore {
             remove(Keys.LAST_SKIP_REASON)
             remove(Keys.WAS_INSIDE_GEOFENCE)
             remove(Keys.LAST_HEARTBEAT_AT)
+            remove(Keys.ANCHOR_ADDRESS)
         }.apply()
     }
 
@@ -242,6 +251,15 @@ object EngineStore {
         status.put("snoozeUntil", p.getLong(Keys.SNOOZE_UNTIL, 0L))
         status.put("carDeviceAddress", p.getString(Keys.CAR_DEVICE_ADDRESS, ""))
         status.put("carDeviceName", p.getString(Keys.CAR_DEVICE_NAME, ""))
+        status.put("hasAnchor", p.getBoolean(Keys.HAS_ANCHOR, false))
+        status.put("anchorAddress", p.getString(Keys.ANCHOR_ADDRESS, ""))
+        if (p.getBoolean(Keys.HAS_ANCHOR, false)) {
+            status.put("anchorLat", p.getFloat(Keys.ANCHOR_LAT, 0f).toDouble())
+            status.put("anchorLng", p.getFloat(Keys.ANCHOR_LNG, 0f).toDouble())
+        } else {
+            status.put("anchorLat", JSObject.NULL)
+            status.put("anchorLng", JSObject.NULL)
+        }
 
         if (p.getBoolean(Keys.HAS_LAST_LOCATION, false)) {
             status.put("lastLat", p.getFloat(Keys.LAST_LAT, 0f).toDouble())

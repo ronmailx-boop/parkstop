@@ -81,6 +81,10 @@
       return nativePlugin ? nativePlugin.openAppDeepLink(options) : unavailable('openAppDeepLink');
     },
 
+    openNavigationToParkingSpot() {
+      return nativePlugin ? nativePlugin.openNavigationToParkingSpot() : unavailable('openNavigationToParkingSpot');
+    },
+
     getDetailedPermissionStatus() {
       return nativePlugin
         ? nativePlugin.getDetailedPermissionStatus()

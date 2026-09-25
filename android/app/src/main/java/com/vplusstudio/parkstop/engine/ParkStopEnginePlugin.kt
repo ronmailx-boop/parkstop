@@ -219,6 +219,27 @@ class ParkStopEnginePlugin : Plugin(), EngineEvents.Listener {
         call.resolve()
     }
 
+    @PluginMethod
+    fun openNavigationToParkingSpot(call: PluginCall) {
+        if (!EngineStore.hasAnchor(context)) {
+            call.reject("מיקום החניה עדיין לא ידוע")
+            return
+        }
+        val lat = EngineStore.getAnchorLat(context)
+        val lng = EngineStore.getAnchorLng(context)
+        val label = Uri.encode(EngineStore.getAnchorAddress(context).ifBlank { "החניה שלי" })
+        try {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("geo:$lat,$lng?q=$lat,$lng($label)")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject("לא נמצאה אפליקציית ניווט במכשיר")
+        }
+    }
+
     /** Per-permission granted/denied, independent of the Capacitor "core" alias which
      * bundles location+bluetooth+notifications together and can't tell them apart. */
     @PluginMethod
