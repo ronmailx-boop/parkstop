@@ -20,7 +20,7 @@ class CarDisconnectReceiver : BroadcastReceiver() {
         if (intent.action != BluetoothDevice.ACTION_ACL_DISCONNECTED) return
 
         val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-        val address = device?.address ?: return
+        val address = try { device?.address } catch (e: SecurityException) { null } ?: return
 
         if (!EngineStore.useBluetooth(context)) return
         if (EngineStore.getState(context) != EngineStore.State.IDLE) return

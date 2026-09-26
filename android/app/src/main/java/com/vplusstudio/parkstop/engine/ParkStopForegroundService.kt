@@ -39,6 +39,10 @@ class ParkStopForegroundService : Service() {
         private const val GEOFENCE_ALERT_COOLDOWN_MS = 5 * 60_000L
         private const val HEARTBEAT_INTERVAL_MS = 30 * 60_000L
         private const val LOCATION_ACCURACY_THRESHOLD_METERS = 100f
+        private const val ANCHOR_LOW_CONFIDENCE_THRESHOLD_METERS = 40f
+        private const val ANCHOR_REFINEMENT_WINDOW_MS = 3 * 60_000L
+        private const val ANCHOR_REFINEMENT_MAX_DISTANCE_METERS = 150f
+        private const val ANCHOR_REFINEMENT_MIN_IMPROVEMENT_METERS = 15f
 
         /** Whether the service object is currently alive. Read by the Status screen -- a
          * state of MONITORING with this false means Android killed the service silently. */
@@ -71,9 +75,23 @@ class ParkStopForegroundService : Service() {
     private val bluetoothReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-            val address = device?.address ?: return
+            val address = try { device?.address } catch (e: SecurityException) { null } ?: return
+            val name = try { device?.name } catch (e: SecurityException) { null } ?: address
             val carAddress = EngineStore.getCarDeviceAddress(applicationContext)
-            if (carAddress.isBlank() || !address.equals(carAddress, ignoreCase = true)) return
+            if (carAddress.isBlank() || !address.equals(carAddress, ignoreCase = true)) {
+                // Diagnostic only, logged while a session is actively monitoring: if the car's
+                // Bluetooth never seems to "connect", this tells us whether the ACL event fires
+                // at all (for ANY device) and whether its address actually matches what's saved
+                // in Settings -- instead of the receiver just silently doing nothing either way.
+                val actionLabel = when (intent.action) {
+                    BluetoothDevice.ACTION_ACL_CONNECTED -> "התחבר"
+                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> "התנתק"
+                    else -> return
+                }
+                val mismatch = if (carAddress.isBlank()) "לא נבחר מכשיר רכב בהגדרות" else "מכשיר הרכב שהוגדר: $carAddress"
+                logAndBroadcast("info", "אירוע בלוטות׳: \"$name\" ($address) $actionLabel — $mismatch")
+                return
+            }
 
             when (intent.action) {
                 BluetoothDevice.ACTION_ACL_CONNECTED -> {
@@ -138,15 +156,18 @@ class ParkStopForegroundService : Service() {
         try {
             // High accuracy (not balanced) since this is a one-shot call at parking start,
             // not a recurring poll -- a coarse/cached fix here would seed a bad anchor.
+            // maxUpdateAgeMillis(0) forces a fresh fix instead of accepting a stale cached
+            // one, which is otherwise a common source of a wildly-off starting point.
             val request = CurrentLocationRequest.Builder()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setMaxUpdateAgeMillis(0)
                 .build()
             val cancellationSource = CancellationTokenSource()
             anchorCancellationSource = cancellationSource
             client.getCurrentLocation(request, cancellationSource.token)
                 .addOnSuccessListener { location ->
                     if (location != null) {
-                        EngineStore.setAnchor(applicationContext, location.latitude, location.longitude)
+                        EngineStore.setAnchor(applicationContext, location.latitude, location.longitude, location.accuracy)
                         // Seed the baseline as "inside" -- you're standing at this exact spot
                         // when the anchor is captured, so the next location update must not
                         // read as an ENTER transition (that previously fired the alert
@@ -154,7 +175,7 @@ class ParkStopForegroundService : Service() {
                         EngineStore.setWasInsideGeofence(applicationContext, true)
                         logAndBroadcast("success", "מיקום החניה נשמר (דיוק ±${location.accuracy.toInt()} מ׳)")
                         postStatus()
-                        resolveAnchorAddress(location.latitude, location.longitude)
+                        resolveAnchorAddress(location.latitude, location.longitude, location.accuracy)
                     } else {
                         logAndBroadcast("warn", "לא ניתן היה לאתר מיקום נוכחי לשמירת החניה")
                     }
@@ -171,7 +192,7 @@ class ParkStopForegroundService : Service() {
      * find their way back to the car in an unfamiliar area while the session is active. Best
      * effort: silently gives up if Geocoder is unavailable or resolves nothing (the raw
      * coordinates + the "navigate" button still work either way). */
-    private fun resolveAnchorAddress(lat: Double, lng: Double) {
+    private fun resolveAnchorAddress(lat: Double, lng: Double, accuracyMeters: Float = 0f) {
         if (!Geocoder.isPresent()) return
 
         fun onAddressesResolved(addresses: List<Address>?) {
@@ -190,8 +211,17 @@ class ParkStopForegroundService : Service() {
             val formatted = if (parts.isNotEmpty()) parts.joinToString(", ") else address.getAddressLine(0)
             if (formatted.isNullOrBlank()) return
 
-            EngineStore.setAnchorAddress(applicationContext, formatted)
-            logAndBroadcast("info", "כתובת החניה זוהתה: $formatted")
+            // GPS fixes taken in covered/underground parking (common for Israeli parking
+            // garages) can be off by dozens of meters, resolving to the wrong street address
+            // entirely -- flag that clearly instead of presenting a low-confidence guess as fact.
+            val finalAddress = if (accuracyMeters > ANCHOR_LOW_CONFIDENCE_THRESHOLD_METERS) {
+                "$formatted (מיקום משוער, דיוק ±${accuracyMeters.toInt()} מ׳)"
+            } else {
+                formatted
+            }
+
+            EngineStore.setAnchorAddress(applicationContext, finalAddress)
+            logAndBroadcast("info", "כתובת החניה זוהתה: $finalAddress")
             postStatus()
         }
 
@@ -235,6 +265,9 @@ class ParkStopForegroundService : Service() {
 
     private fun registerBluetoothReceiver() {
         if (receiverRegistered || !EngineStore.useBluetooth(applicationContext)) return
+        if (EngineStore.getCarDeviceAddress(applicationContext).isBlank()) {
+            logAndBroadcast("warn", "לא נבחר מכשיר בלוטות׳ לרכב בהגדרות — איתות הבלוטות׳ לא יזהה חיבור/ניתוק")
+        }
         val filter = IntentFilter().apply {
             addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
@@ -294,6 +327,8 @@ class ParkStopForegroundService : Service() {
             return
         }
 
+        maybeRefineAnchor(location)
+
         val results = FloatArray(1)
         Location.distanceBetween(
             EngineStore.getAnchorLat(applicationContext),
@@ -320,6 +355,33 @@ class ParkStopForegroundService : Service() {
         }
 
         evaluateConditions(justEntered)
+    }
+
+    /** The one-shot anchor fix taken at parking-start is sometimes a poor/cached fix (e.g. GPS
+     * hasn't locked on yet in a covered garage). If a meaningfully more accurate fix arrives
+     * nearby soon after, silently upgrade the anchor + re-resolve its address instead of leaving
+     * the session stuck with a wrong starting point for its whole duration. Guarded by distance
+     * so this can't fire once the user has actually walked away from the car. */
+    private fun maybeRefineAnchor(location: Location) {
+        if (System.currentTimeMillis() - EngineStore.getStartedAt(applicationContext) > ANCHOR_REFINEMENT_WINDOW_MS) return
+
+        val anchorAccuracy = EngineStore.getAnchorAccuracyMeters(applicationContext)
+        if (anchorAccuracy <= 0f || location.accuracy > anchorAccuracy - ANCHOR_REFINEMENT_MIN_IMPROVEMENT_METERS) return
+
+        val results = FloatArray(1)
+        Location.distanceBetween(
+            EngineStore.getAnchorLat(applicationContext),
+            EngineStore.getAnchorLng(applicationContext),
+            location.latitude,
+            location.longitude,
+            results
+        )
+        if (results[0] > ANCHOR_REFINEMENT_MAX_DISTANCE_METERS) return
+
+        EngineStore.setAnchor(applicationContext, location.latitude, location.longitude, location.accuracy)
+        logAndBroadcast("info", "מיקום החניה עודכן לדיוק טוב יותר (±${anchorAccuracy.toInt()} מ׳ ⟵ ±${location.accuracy.toInt()} מ׳)")
+        postStatus()
+        resolveAnchorAddress(location.latitude, location.longitude, location.accuracy)
     }
 
     /** [geofenceJustEntered] gates the geofence alert on an actual RETURN transition (you were
