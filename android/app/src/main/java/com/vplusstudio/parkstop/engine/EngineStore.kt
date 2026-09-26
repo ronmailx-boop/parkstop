@@ -60,6 +60,7 @@ object EngineStore {
         const val STARTED_AT = "startedAt"
         const val ANCHOR_LAT = "anchorLat"
         const val ANCHOR_LNG = "anchorLng"
+        const val ANCHOR_ACCURACY_METERS = "anchorAccuracyMeters"
         const val HAS_ANCHOR = "hasAnchor"
         const val ANCHOR_ADDRESS = "anchorAddress"
         const val BLUETOOTH_CONNECTED = "bluetoothConnected"
@@ -122,20 +123,23 @@ object EngineStore {
             remove(Keys.WAS_INSIDE_GEOFENCE)
             remove(Keys.LAST_HEARTBEAT_AT)
             remove(Keys.ANCHOR_ADDRESS)
+            remove(Keys.ANCHOR_ACCURACY_METERS)
         }.apply()
     }
 
-    fun setAnchor(context: Context, lat: Double, lng: Double) {
+    fun setAnchor(context: Context, lat: Double, lng: Double, accuracyMeters: Float = 0f) {
         prefs(context).edit()
             .putBoolean(Keys.HAS_ANCHOR, true)
             .putFloat(Keys.ANCHOR_LAT, lat.toFloat())
             .putFloat(Keys.ANCHOR_LNG, lng.toFloat())
+            .putFloat(Keys.ANCHOR_ACCURACY_METERS, accuracyMeters)
             .apply()
     }
 
     fun hasAnchor(context: Context): Boolean = prefs(context).getBoolean(Keys.HAS_ANCHOR, false)
     fun getAnchorLat(context: Context): Double = prefs(context).getFloat(Keys.ANCHOR_LAT, 0f).toDouble()
     fun getAnchorLng(context: Context): Double = prefs(context).getFloat(Keys.ANCHOR_LNG, 0f).toDouble()
+    fun getAnchorAccuracyMeters(context: Context): Float = prefs(context).getFloat(Keys.ANCHOR_ACCURACY_METERS, 0f)
 
     fun setAnchorAddress(context: Context, address: String) {
         prefs(context).edit().putString(Keys.ANCHOR_ADDRESS, address).apply()
@@ -157,6 +161,7 @@ object EngineStore {
             remove(Keys.WAS_INSIDE_GEOFENCE)
             remove(Keys.LAST_HEARTBEAT_AT)
             remove(Keys.ANCHOR_ADDRESS)
+            remove(Keys.ANCHOR_ACCURACY_METERS)
         }.apply()
     }
 
